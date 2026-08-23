@@ -185,9 +185,13 @@ func createStudent(c *fiber.Ctx) error {
 		errs["grade"] = "harus berada di antara 0 dan 100"
 	}
 
-	// NIM tidak boleh sama.
+	// Kalau NIM sudah digunakan, kembalikan 409 Conflict.
 	if findStudentByNIM(req.NIM) != -1 {
-		errs["nim"] = "sudah digunakan"
+		return fail(
+			c,
+			fiber.StatusConflict,
+			"NIM sudah digunakan",
+		)
 	}
 
 	if len(errs) > 0 {
