@@ -1,112 +1,158 @@
 package main
 
 import (
-	"fmt"
+	"context"
 	"log"
-	"strings"
+	"os"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/cors"
-	"github.com/gofiber/fiber/v2/middleware/logger"
-	"github.com/gofiber/fiber/v2/middleware/requestid"
+
+	"api-students/app/handler"
+	"api-students/app/repository"
+	"api-students/config"
+	"api-students/database"
 )
-
-// Method yang wajib menggunakan JSON body.
-var metodeBerbody = map[string]bool{
-	fiber.MethodPost:  true,
-	fiber.MethodPut:   true,
-	fiber.MethodPatch: true,
-}
-
-// Tolak POST/PUT/PATCH jika Content-Type bukan JSON.
-func requireJSON(c *fiber.Ctx) error {
-	if metodeBerbody[c.Method()] {
-		ct := c.Get("Content-Type")
-
-		if !strings.HasPrefix(ct, fiber.MIMEApplicationJSON) {
-			return fail(
-				c,
-				fiber.StatusUnsupportedMediaType,
-				"Content-Type harus application/json",
-			)
-		}
-	}
-
-	return c.Next()
-}
 
 func main() {
 
-	// Membuat aplikasi Fiber.
-	app := fiber.New(fiber.Config{
-		AppName: "API Students - Praktikum Backend",
+	// ============================================================
+	// 1. Load environment variable dari .env
+	// ============================================================
 
-		// Error yang tidak ditangani endpoint masuk ke sini.
+	config.LoadEnv()
+
+	// ============================================================
+	// 2. Buat connection pool PostgreSQL
+	// ============================================================
+
+	ctx := context.Background()
+
+	pool, err := database.NewPool(ctx)
+
+	if err != nil {
+		log.Fatalf("gagal terhubung ke database: %v", err)
+	}
+
+	defer pool.Close()
+
+	log.Println("database berhasil terhubung")
+
+	// ============================================================
+	// 3. Buat repository
+	// ============================================================
+
+	studentRepo := repository.NewStudentRepository(pool)
+
+	// ============================================================
+	// 4. Buat handler
+	// ============================================================
+
+	studentHandler := handler.NewStudentHandler(studentRepo)
+
+	// ============================================================
+	// 5. Buat Fiber
+	// ============================================================
+
+	app := fiber.New(fiber.Config{
+		AppName: "Praktikum Backend Lanjut - Students",
+
 		ErrorHandler: func(c *fiber.Ctx, err error) error {
 
 			status := fiber.StatusInternalServerError
-			pesan := "terjadi kesalahan pada server"
+			message := "terjadi kesalahan pada server"
 
-			if e, ok := err.(*fiber.Error); ok {
-				status = e.Code
-				pesan = e.Message
+			if fiberErr, ok := err.(*fiber.Error); ok {
+				status = fiberErr.Code
+				message = fiberErr.Message
 			}
 
-			return fail(c, status, pesan)
+			return handler.Fail(
+				c,
+				status,
+				message,
+			)
 		},
 	})
 
-	// Middleware global.
-	app.Use(requestid.New())
+	// ============================================================
+	// 6. Health check
+	// ============================================================
 
-	app.Use(logger.New(logger.Config{
-		Format: "[${time}] ${locals:requestid} ${method} ${path} ${status} ${latency}\n",
-	}))
+	app.Get("/api/v1/health", func(c *fiber.Ctx) error {
 
-	app.Use(cors.New())
+		// Health tidak hanya mengecek server,
+		// tetapi juga memastikan database masih bisa diakses.
 
-	// Endpoint utama.
-	app.Get("/", func(c *fiber.Ctx) error {
-		return c.SendString("API Students berjalan")
-	})
+		pingCtx, cancel := context.WithTimeout(
+			context.Background(),
+			2*time.Second,
+		)
 
-	// Semua endpoint API memakai /api/v1.
-	api := app.Group("/api/v1")
+		defer cancel()
 
-	// Health check.
-	api.Get("/health", func(c *fiber.Ctx) error {
-		return ok(
+		if err := pool.Ping(pingCtx); err != nil {
+
+			return handler.Fail(
+				c,
+				fiber.StatusServiceUnavailable,
+				"database tidak tersedia",
+			)
+		}
+
+		return handler.Ok(
 			c,
-			"server berjalan",
-			fiber.Map{
-				"timestamp": time.Now(),
-			},
+			"server dan database berjalan",
+			nil,
 		)
 	})
 
-	// requireJSON hanya berlaku untuk /students.
-	s := api.Group("/students", requireJSON)
+	// ============================================================
+	// 7. Route students
+	// ============================================================
 
-	// CRUD Student.
-	s.Get("/", listStudents)
-	s.Get("/:id", getStudent)
-	s.Post("/", createStudent)
-	s.Put("/:id", replaceStudent)
-	s.Patch("/:id", patchStudent)
-	s.Delete("/:id", deleteStudent)
+	students := app.Group("/api/v1/students")
 
-	// Endpoint yang tidak terdaftar → 404.
+	students.Get("/", studentHandler.FindAll)
+	students.Get("/:id", studentHandler.FindByID)
+
+	students.Post("/", studentHandler.Create)
+
+	students.Put("/:id", studentHandler.Replace)
+
+	students.Patch("/:id", studentHandler.Patch)
+
+	students.Delete("/:id", studentHandler.Delete)
+
+	// ============================================================
+	// 8. Endpoint yang tidak ditemukan
+	// ============================================================
+
 	app.Use(func(c *fiber.Ctx) error {
-		return fail(
+
+		return handler.Fail(
 			c,
 			fiber.StatusNotFound,
 			"endpoint tidak ditemukan",
 		)
 	})
 
-	fmt.Println("Server berjalan di http://localhost:3000")
+	// ============================================================
+	// 9. Jalankan server
+	// ============================================================
 
-	// Jalankan semua file dalam package main.
-	log.Fatal(app.Listen(":3000"))
+	port := os.Getenv("APP_PORT")
+
+	if port == "" {
+		port = "3000"
+	}
+
+	log.Printf(
+		"server berjalan di http://localhost:%s",
+		port,
+	)
+
+	log.Fatal(
+		app.Listen(":" + port),
+	)
 }
