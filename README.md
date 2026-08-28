@@ -1,45 +1,48 @@
-# Student REST API
+# API Students - Praktikum Backend Lanjut
 
-REST API sederhana untuk mengelola data mahasiswa menggunakan Go dan Fiber.
+API mahasiswa menggunakan Go, Fiber, dan PostgreSQL.
 
-## Base URL
+## 1. Teknologi
 
-http://localhost:3000/api/v1
+- Go
+- Fiber
+- PostgreSQL
+- pgx
+- godotenv
 
-## Kontrak API
+## 2. Struktur Database
 
-| Metode | Endpoint | Parameter | Contoh Body | Status | Contoh Response |
-|---|---|---|---|---|---|
-| GET | `/students` | `page`, `limit`, `search`, `sort`, `order`, `is_active` | - | 200 | `{"success":true,"message":"daftar student berhasil diambil","data":[...],"meta":{...}}` |
-| GET | `/students/:id` | `id` | - | 200, 400, 404 | `{"success":true,"message":"student ditemukan","data":{...}}` |
-| POST | `/students` | - | `{"nim":"202501001","name":"Andi Halim","grade":85,"is_active":true}` | 201, 400, 409, 415, 422 | `{"success":true,"message":"student berhasil dibuat","data":{...}}` |
-| PUT | `/students/:id` | `id` | `{"nim":"202501001","name":"Andi Putra","grade":95,"is_active":false}` | 200, 400, 404, 415, 422 | `{"success":true,"message":"student berhasil diganti seluruhnya","data":{...}}` |
-| PATCH | `/students/:id` | `id` | `{"grade":100}` | 200, 400, 404, 415, 422 | `{"success":true,"message":"student berhasil diperbarui sebagian","data":{...}}` |
-| DELETE | `/students/:id` | `id` | - | 204, 400, 404 | Tidak ada response body |
+Database yang digunakan:
 
-## Query String
+- Database: praktikum_backend
+- Table: students
 
-Endpoint `GET /students` mendukung beberapa parameter:
+### Struktur tabel
 
-| Parameter | Fungsi | Default |
+| Kolom | Tipe | Keterangan |
 |---|---|---|
-| `page` | Menentukan halaman data | `1` |
-| `limit` | Menentukan jumlah data per halaman | `10` |
-| `search` | Mencari berdasarkan nama mahasiswa | kosong |
-| `sort` | Menentukan field pengurutan | `id` |
-| `order` | Menentukan arah pengurutan | `asc` |
-| `is_active` | Filter berdasarkan status aktif | tidak menyaring |
+| id | varchar(50) | Primary Key |
+| nim | varchar(20) | Wajib unik |
+| name | varchar(100) | Nama mahasiswa |
+| grade | double precision | Nilai mahasiswa |
+| is_active | boolean | Status mahasiswa |
+| created_at | timestamptz | Waktu pembuatan data |
 
-Batas maksimum `limit` adalah `100`. Batas ini digunakan untuk mencegah
-client meminta data dalam jumlah terlalu besar dalam satu request.
+### Index
 
-Field yang dapat digunakan untuk `sort` dibatasi menggunakan whitelist agar
-client tidak dapat memasukkan field sembarangan.
+Tabel students memiliki:
 
-## Contoh Request
+- Primary Key pada `id`
+- UNIQUE constraint pada `nim`
+- Index `students_name_lower_idx` pada `LOWER(name)`
 
-### Mengambil daftar student
+UNIQUE pada NIM digunakan agar tidak terdapat dua mahasiswa dengan NIM yang sama.
 
-```bash
-curl.exe -i "http://localhost:3000/api/v1/students"
+Index pada nama digunakan untuk membantu pencarian nama yang tidak membedakan huruf besar dan kecil.
 
+## 3. Persiapan Database
+
+Buat database:
+
+```sql
+CREATE DATABASE praktikum_backend;
