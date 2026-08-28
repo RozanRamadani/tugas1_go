@@ -259,10 +259,10 @@ func (h *UserHandler) Replace(c *fiber.Ctx) error {
 	hasil, err := h.repo.Update(
 		ctx,
 		model.User{
-			ID:        id,
-			Username:  req.Username,
-			Email:     req.Email,
-			IsActive:  req.IsActive,
+			ID:       id,
+			Username: req.Username,
+			Email:    req.Email,
+			IsActive: req.IsActive,
 		},
 	)
 
