@@ -7,9 +7,11 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+
+	"latihan-fiber/app/model"
 )
 
-var users []User
+var users []model.User
 var nextID = 1
 
 func findUserIndex(id int) int {
@@ -22,17 +24,20 @@ func findUserIndex(id int) int {
 }
 
 // cocokPencarian memeriksa apakah kata kunci muncul di username atau email.
-func cocokPencarian(u User, kata string) bool {
+func cocokPencarian(u model.User, kata string) bool {
 	kata = strings.ToLower(kata)
+
 	return strings.Contains(strings.ToLower(u.Username), kata) ||
 		strings.Contains(strings.ToLower(u.Email), kata)
 }
 
 func paramID(c *fiber.Ctx) (int, bool) {
 	id, err := strconv.Atoi(c.Params("id"))
+
 	if err != nil || id < 1 {
 		return 0, false
 	}
+
 	return id, true
 }
 
@@ -41,7 +46,7 @@ func listUsers(c *fiber.Ctx) error {
 	q := parseListQuery(c)
 
 	// 1) Saring
-	hasil := []User{}
+	hasil := []model.User{}
 
 	for _, u := range users {
 		if q.IsActive != nil && u.IsActive != *q.IsActive {
@@ -101,7 +106,7 @@ func listUsers(c *fiber.Ctx) error {
 		c,
 		"daftar user berhasil diambil",
 		hasil[mulai:akhir],
-		&Meta{
+		&model.Meta{
 			Page:       q.Page,
 			Limit:      q.Limit,
 			Total:      total,
@@ -136,7 +141,7 @@ func getUser(c *fiber.Ctx) error {
 }
 
 func createUser(c *fiber.Ctx) error {
-	var req CreateUserRequest
+	var req model.CreateUserRequest
 
 	if err := c.BodyParser(&req); err != nil {
 		return fail(
@@ -173,7 +178,7 @@ func createUser(c *fiber.Ctx) error {
 		return failValidation(c, errs)
 	}
 
-	baru := User{
+	baru := model.User{
 		ID:        nextID,
 		Username:  req.Username,
 		Email:     req.Email,
@@ -216,7 +221,7 @@ func replaceUser(c *fiber.Ctx) error {
 		)
 	}
 
-	var req ReplaceUserRequest
+	var req model.ReplaceUserRequest
 
 	if err := c.BodyParser(&req); err != nil {
 		return fail(
@@ -273,7 +278,7 @@ func patchUser(c *fiber.Ctx) error {
 		)
 	}
 
-	var req PatchUserRequest
+	var req model.PatchUserRequest
 
 	if err := c.BodyParser(&req); err != nil {
 		return fail(
@@ -286,6 +291,7 @@ func patchUser(c *fiber.Ctx) error {
 	if req.Username == nil &&
 		req.Email == nil &&
 		req.IsActive == nil {
+
 		return fail(
 			c,
 			fiber.StatusBadRequest,
