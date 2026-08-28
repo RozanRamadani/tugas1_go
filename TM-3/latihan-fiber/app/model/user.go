@@ -46,3 +46,9 @@ type Meta struct {
 	Total      int `json:"total"`
 	TotalPages int `json:"total_pages"`
 }
+
+// Offset menghitung berapa data yang harus dilewati
+// berdasarkan halaman dan jumlah data per halaman.
+func (q ListQuery) Offset() int {
+	return (q.Page - 1) * q.Limit
+}
