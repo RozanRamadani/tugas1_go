@@ -29,7 +29,6 @@ func (s *StudentService) List(
 	ctx context.Context,
 	q model.ListQuery,
 ) ([]model.Student, int, error) {
-
 	return s.repo.FindAll(ctx, q)
 }
 
@@ -62,7 +61,7 @@ func (s *StudentService) Create(
 
 	if len(errs) > 0 {
 		return model.Student{}, ValidationError{
-			Errors: errs,
+			Fields: errs,
 		}
 	}
 
@@ -95,7 +94,7 @@ func (s *StudentService) Replace(
 
 	if len(errs) > 0 {
 		return model.Student{}, ValidationError{
-			Errors: errs,
+			Fields: errs,
 		}
 	}
 
@@ -124,17 +123,19 @@ func (s *StudentService) Patch(
 		return model.Student{}, errors.New("id tidak boleh kosong")
 	}
 
+	// Ambil data lama terlebih dahulu.
 	student, err := s.repo.FindByID(ctx, id)
 
 	if err != nil {
 		return model.Student{}, err
 	}
 
+	// Business rule PATCH dipindahkan ke student_rules.go.
 	student, errs := ApplyPatch(student, req)
 
 	if len(errs) > 0 {
 		return model.Student{}, ValidationError{
-			Errors: errs,
+			Fields: errs,
 		}
 	}
 

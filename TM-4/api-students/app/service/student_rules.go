@@ -98,9 +98,8 @@ func ApplyPatch(
 	return current, errs
 }
 
-// ValidationError menyimpan kumpulan error validasi.
 type ValidationError struct {
-	Errors map[string]string
+	Fields map[string]string
 }
 
 func (e ValidationError) Error() string {
