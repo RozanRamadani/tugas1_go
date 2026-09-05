@@ -1,63 +1,34 @@
 package route
 
 import (
-	"context"
-	"time"
+	"api-students/app/handler"
+	"api-students/middleware"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/jackc/pgx/v5/pgxpool"
-
-	"api-students/app/service"
-	"api-students/helper"
-	"api-students/middleware"
 )
 
 func Register(
 	app *fiber.App,
-	pool *pgxpool.Pool,
-	studentService *service.StudentService,
+	studentHandler *handler.StudentHandler,
 ) {
-
 	api := app.Group("/api/v1")
 
-	api.Get("/health", healthCheck(pool))
+	api.Get("/health", func(c *fiber.Ctx) error {
+		return c.JSON(fiber.Map{
+			"success": true,
+			"message": "server berjalan",
+		})
+	})
 
 	students := api.Group(
 		"/students",
 		middleware.RequireJSON,
 	)
 
-	students.Get("/", studentService.List)
-	students.Get("/:id", studentService.Get)
-	students.Post("/", studentService.Create)
-	students.Put("/:id", studentService.Replace)
-	students.Patch("/:id", studentService.Patch)
-	students.Delete("/:id", studentService.Delete)
-}
-
-func healthCheck(pool *pgxpool.Pool) fiber.Handler {
-
-	return func(c *fiber.Ctx) error {
-
-		ctx, cancel := context.WithTimeout(
-			c.UserContext(),
-			2*time.Second,
-		)
-		defer cancel()
-
-		if err := pool.Ping(ctx); err != nil {
-			return helper.Fail(
-				c,
-				fiber.StatusServiceUnavailable,
-				"database tidak dapat dihubungi",
-			)
-		}
-
-		return helper.Success(
-			c,
-			fiber.StatusOK,
-			"server dan database berjalan",
-			nil,
-		)
-	}
+	students.Get("/", studentHandler.List)
+	students.Get("/:id", studentHandler.Get)
+	students.Post("/", studentHandler.Create)
+	students.Put("/:id", studentHandler.Replace)
+	students.Patch("/:id", studentHandler.Patch)
+	students.Delete("/:id", studentHandler.Delete)
 }

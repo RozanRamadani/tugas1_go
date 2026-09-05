@@ -5,21 +5,22 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/gofiber/fiber/v2"
-
 	"api-students/app/model"
 	"api-students/app/repository"
+	"api-students/app/service"
+
+	"github.com/gofiber/fiber/v2"
 )
 
 type StudentHandler struct {
-	repo repository.StudentRepository
+	service *service.StudentService
 }
 
 func NewStudentHandler(
-	repo repository.StudentRepository,
+	studentService *service.StudentService,
 ) *StudentHandler {
 	return &StudentHandler{
-		repo: repo,
+		service: studentService,
 	}
 }
 
@@ -27,11 +28,11 @@ func NewStudentHandler(
 // GET /students
 // ============================================================
 
-func (h *StudentHandler) FindAll(c *fiber.Ctx) error {
+func (h *StudentHandler) List(c *fiber.Ctx) error {
 
 	q := parseListQuery(c)
 
-	students, total, err := h.repo.FindAll(
+	students, total, err := h.service.List(
 		c.Context(),
 		q,
 	)
@@ -67,11 +68,11 @@ func (h *StudentHandler) FindAll(c *fiber.Ctx) error {
 // GET /students/:id
 // ============================================================
 
-func (h *StudentHandler) FindByID(c *fiber.Ctx) error {
+func (h *StudentHandler) Get(c *fiber.Ctx) error {
 
-	id := c.Params("id")
+	id := strings.TrimSpace(c.Params("id"))
 
-	if strings.TrimSpace(id) == "" {
+	if id == "" {
 		return fail(
 			c,
 			fiber.StatusBadRequest,
@@ -79,7 +80,7 @@ func (h *StudentHandler) FindByID(c *fiber.Ctx) error {
 		)
 	}
 
-	student, err := h.repo.FindByID(
+	student, err := h.service.Get(
 		c.Context(),
 		id,
 	)
@@ -123,44 +124,19 @@ func (h *StudentHandler) Create(c *fiber.Ctx) error {
 		)
 	}
 
-	errs := map[string]string{}
-
-	req.ID = strings.TrimSpace(req.ID)
-	req.NIM = strings.TrimSpace(req.NIM)
-	req.Name = strings.TrimSpace(req.Name)
-
-	if req.ID == "" {
-		errs["id"] = "wajib diisi"
-	}
-
-	if req.NIM == "" {
-		errs["nim"] = "wajib diisi"
-	}
-
-	if req.Name == "" {
-		errs["name"] = "wajib diisi"
-	}
-
-	if req.Grade < 0 || req.Grade > 100 {
-		errs["grade"] = "harus berada di antara 0 dan 100"
-	}
-
-	if len(errs) > 0 {
-		return failValidation(c, errs)
-	}
-
-	student := model.Student{
-		ID:       req.ID,
-		NIM:      req.NIM,
-		Name:     req.Name,
-		Grade:    req.Grade,
-		IsActive: req.IsActive,
-	}
-
-	result, err := h.repo.Create(
+	result, err := h.service.Create(
 		c.Context(),
-		student,
+		req,
 	)
+
+	var validationErr *service.ValidationError
+
+	if errors.As(err, &validationErr) {
+		return failValidation(
+			c,
+			validationErr.Fields,
+		)
+	}
 
 	if errors.Is(err, repository.ErrDuplicate) {
 		return fail(
@@ -192,7 +168,15 @@ func (h *StudentHandler) Create(c *fiber.Ctx) error {
 
 func (h *StudentHandler) Replace(c *fiber.Ctx) error {
 
-	id := c.Params("id")
+	id := strings.TrimSpace(c.Params("id"))
+
+	if id == "" {
+		return fail(
+			c,
+			fiber.StatusBadRequest,
+			"id wajib diisi",
+		)
+	}
 
 	var req model.ReplaceStudentRequest
 
@@ -204,40 +188,20 @@ func (h *StudentHandler) Replace(c *fiber.Ctx) error {
 		)
 	}
 
-	errs := map[string]string{}
-
-	req.NIM = strings.TrimSpace(req.NIM)
-	req.Name = strings.TrimSpace(req.Name)
-
-	if req.NIM == "" {
-		errs["nim"] = "wajib diisi pada PUT"
-	}
-
-	if req.Name == "" {
-		errs["name"] = "wajib diisi pada PUT"
-	}
-
-	if req.Grade < 0 || req.Grade > 100 {
-		errs["grade"] = "harus berada di antara 0 dan 100"
-	}
-
-	if len(errs) > 0 {
-		return failValidation(c, errs)
-	}
-
-	student := model.Student{
-		ID:       id,
-		NIM:      req.NIM,
-		Name:     req.Name,
-		Grade:    req.Grade,
-		IsActive: req.IsActive,
-	}
-
-	result, err := h.repo.Update(
+	result, err := h.service.Replace(
 		c.Context(),
 		id,
-		student,
+		req,
 	)
+
+	var validationErr *service.ValidationError
+
+	if errors.As(err, &validationErr) {
+		return failValidation(
+			c,
+			validationErr.Fields,
+		)
+	}
 
 	if errors.Is(err, repository.ErrNotFound) {
 		return fail(
@@ -276,7 +240,15 @@ func (h *StudentHandler) Replace(c *fiber.Ctx) error {
 
 func (h *StudentHandler) Patch(c *fiber.Ctx) error {
 
-	id := c.Params("id")
+	id := strings.TrimSpace(c.Params("id"))
+
+	if id == "" {
+		return fail(
+			c,
+			fiber.StatusBadRequest,
+			"id wajib diisi",
+		)
+	}
 
 	var req model.PatchStudentRequest
 
@@ -300,10 +272,10 @@ func (h *StudentHandler) Patch(c *fiber.Ctx) error {
 		)
 	}
 
-	// Ambil data lama terlebih dahulu.
-	current, err := h.repo.FindByID(
+	result, err := h.service.Patch(
 		c.Context(),
 		id,
+		req,
 	)
 
 	if errors.Is(err, repository.ErrNotFound) {
@@ -314,75 +286,12 @@ func (h *StudentHandler) Patch(c *fiber.Ctx) error {
 		)
 	}
 
-	if err != nil {
-		return fail(
+	var validationErr *service.ValidationError
+
+	if errors.As(err, &validationErr) {
+		return failValidation(
 			c,
-			fiber.StatusInternalServerError,
-			"gagal mengambil student",
-		)
-	}
-
-	// Hanya field yang dikirim yang diubah.
-
-	if req.NIM != nil {
-		nim := strings.TrimSpace(*req.NIM)
-
-		if nim == "" {
-			return failValidation(
-				c,
-				map[string]string{
-					"nim": "tidak boleh kosong",
-				},
-			)
-		}
-
-		current.NIM = nim
-	}
-
-	if req.Name != nil {
-		name := strings.TrimSpace(*req.Name)
-
-		if name == "" {
-			return failValidation(
-				c,
-				map[string]string{
-					"name": "tidak boleh kosong",
-				},
-			)
-		}
-
-		current.Name = name
-	}
-
-	if req.Grade != nil {
-
-		if *req.Grade < 0 || *req.Grade > 100 {
-			return failValidation(
-				c,
-				map[string]string{
-					"grade": "harus berada di antara 0 dan 100",
-				},
-			)
-		}
-
-		current.Grade = *req.Grade
-	}
-
-	if req.IsActive != nil {
-		current.IsActive = *req.IsActive
-	}
-
-	result, err := h.repo.Update(
-		c.Context(),
-		id,
-		current,
-	)
-
-	if errors.Is(err, repository.ErrNotFound) {
-		return fail(
-			c,
-			fiber.StatusNotFound,
-			"student tidak ditemukan",
+			validationErr.Fields,
 		)
 	}
 
@@ -415,9 +324,17 @@ func (h *StudentHandler) Patch(c *fiber.Ctx) error {
 
 func (h *StudentHandler) Delete(c *fiber.Ctx) error {
 
-	id := c.Params("id")
+	id := strings.TrimSpace(c.Params("id"))
 
-	err := h.repo.Delete(
+	if id == "" {
+		return fail(
+			c,
+			fiber.StatusBadRequest,
+			"id wajib diisi",
+		)
+	}
+
+	err := h.service.Delete(
 		c.Context(),
 		id,
 	)
@@ -484,10 +401,7 @@ func parseListQuery(c *fiber.Ctx) model.ListQuery {
 	}
 
 	if raw := c.Query("is_active"); raw != "" {
-
-		value, err := strconv.ParseBool(raw)
-
-		if err == nil {
+		if value, err := strconv.ParseBool(raw); err == nil {
 			q.IsActive = &value
 		}
 	}
