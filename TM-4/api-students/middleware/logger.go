@@ -1,29 +1,29 @@
 package middleware
 
 import (
-	"encoding/json"
-	"log"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 )
 
-type RequestLogger struct {
-	logger *log.Logger
-}
-
 type RequestLog struct {
-	RequestID string `json:"request_id"`
-	Method    string `json:"method"`
-	Path      string `json:"path"`
-	Status    int    `json:"status"`
-	Duration  string `json:"duration"`
+	RequestID string
+	Method    string
+	Path      string
+	Status    int
+	Duration  string
 }
 
-func NewRequestLogger(logger *log.Logger) *RequestLogger {
+type RequestLogger struct {
+	logFunc func(RequestLog)
+}
+
+func NewRequestLogger(
+	logFunc func(RequestLog),
+) *RequestLogger {
 	return &RequestLogger{
-		logger: logger,
+		logFunc: logFunc,
 	}
 }
 
@@ -49,10 +49,8 @@ func (m *RequestLogger) Handler(c *fiber.Ctx) error {
 		Duration:  time.Since(start).String(),
 	}
 
-	payload, marshalErr := json.Marshal(data)
-
-	if marshalErr == nil && m.logger != nil {
-		m.logger.Println(string(payload))
+	if m.logFunc != nil {
+		m.logFunc(data)
 	}
 
 	return err

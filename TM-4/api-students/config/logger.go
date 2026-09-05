@@ -1,6 +1,7 @@
 package config
 
 import (
+	"encoding/json"
 	"io"
 	"log"
 	"os"
@@ -109,6 +110,28 @@ func CloseLogger() {
 	}
 }
 
+// LogRequest menulis log request dalam format JSON.
 func LogRequest(data interface{}) {
-	// nanti menangani rotasi + penulisan
+
+	if logger == nil {
+		return
+	}
+
+	// Periksa apakah file log perlu dirotasi.
+	if err := RotateLog(); err != nil {
+		logger.Printf(
+			`{"level":"error","message":"gagal melakukan rotasi log","error":%q}`,
+			err.Error(),
+		)
+	}
+
+	// Ubah data menjadi JSON.
+	payload, err := json.Marshal(data)
+
+	if err != nil {
+		return
+	}
+
+	// Tulis ke terminal dan logs/app.log.
+	logger.Println(string(payload))
 }

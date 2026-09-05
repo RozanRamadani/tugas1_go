@@ -15,9 +15,11 @@ func NewApp(studentService *service.StudentService) *fiber.App {
 
 	app := fiber.New()
 
-	logger, _ := GetLogger()
-
-	requestLogger := middleware.NewRequestLogger(logger)
+	requestLogger := middleware.NewRequestLogger(
+		func(data middleware.RequestLog) {
+			LogRequest(data)
+		},
+	)
 
 	app.Use(requestLogger.Handler)
 
