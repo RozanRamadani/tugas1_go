@@ -50,7 +50,7 @@ func (s *StudentService) Get(
 }
 
 // ============================================================
-// CREATE
+// CREATE / POST
 // ============================================================
 
 func (s *StudentService) Create(
@@ -58,8 +58,12 @@ func (s *StudentService) Create(
 	req model.CreateStudentRequest,
 ) (model.Student, error) {
 
-	if err := ValidateCreate(req); err != nil {
-		return model.Student{}, err
+	errs := ValidateCreate(req)
+
+	if len(errs) > 0 {
+		return model.Student{}, ValidationError{
+			Errors: errs,
+		}
 	}
 
 	student := model.Student{
@@ -87,8 +91,12 @@ func (s *StudentService) Replace(
 		return model.Student{}, errors.New("id tidak boleh kosong")
 	}
 
-	if err := ValidateReplace(req); err != nil {
-		return model.Student{}, err
+	errs := ValidateReplace(req)
+
+	if len(errs) > 0 {
+		return model.Student{}, ValidationError{
+			Errors: errs,
+		}
 	}
 
 	student := model.Student{
@@ -122,34 +130,12 @@ func (s *StudentService) Patch(
 		return model.Student{}, err
 	}
 
-	if req.NIM != nil {
-		if strings.TrimSpace(*req.NIM) == "" {
-			return model.Student{}, errors.New("nim tidak boleh kosong")
+	student, errs := ApplyPatch(student, req)
+
+	if len(errs) > 0 {
+		return model.Student{}, ValidationError{
+			Errors: errs,
 		}
-
-		student.NIM = strings.TrimSpace(*req.NIM)
-	}
-
-	if req.Name != nil {
-		if strings.TrimSpace(*req.Name) == "" {
-			return model.Student{}, errors.New("name tidak boleh kosong")
-		}
-
-		student.Name = strings.TrimSpace(*req.Name)
-	}
-
-	if req.Grade != nil {
-		if *req.Grade < 0 || *req.Grade > 100 {
-			return model.Student{}, errors.New(
-				"grade harus berada di antara 0 dan 100",
-			)
-		}
-
-		student.Grade = *req.Grade
-	}
-
-	if req.IsActive != nil {
-		student.IsActive = *req.IsActive
 	}
 
 	return s.repo.Update(ctx, id, student)
