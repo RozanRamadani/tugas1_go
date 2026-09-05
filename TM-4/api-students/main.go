@@ -12,10 +12,14 @@ import (
 
 func main() {
 
-	// Membaca file .env
 	config.LoadEnv()
 
-	// Membuat connection pool PostgreSQL
+	if err := config.InitLogger(); err != nil {
+		log.Fatal("gagal menginisialisasi logger:", err)
+	}
+
+	defer config.CloseLogger()
+
 	pool, err := database.NewPool(context.Background())
 	if err != nil {
 		log.Fatal("gagal terhubung ke database:", err)
@@ -23,16 +27,15 @@ func main() {
 
 	defer pool.Close()
 
-	// Repository
 	studentRepo := repository.NewStudentRepository(pool)
 
-	// Service
 	studentService := service.NewStudentService(studentRepo)
 
-	// Membuat aplikasi Fiber dan mendaftarkan route
 	app := config.NewApp(studentService)
 
 	log.Println("Server berjalan di http://localhost:3000")
 
-	log.Fatal(app.Listen(":3000"))
+	if err := app.Listen(":3000"); err != nil {
+		log.Fatal(err)
+	}
 }

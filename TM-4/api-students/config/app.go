@@ -5,6 +5,7 @@ import (
 
 	"api-students/app/handler"
 	"api-students/app/service"
+	"api-students/middleware"
 	"api-students/route"
 
 	"github.com/gofiber/fiber/v2"
@@ -13,6 +14,12 @@ import (
 func NewApp(studentService *service.StudentService) *fiber.App {
 
 	app := fiber.New()
+
+	logger, _ := GetLogger()
+
+	requestLogger := middleware.NewRequestLogger(logger)
+
+	app.Use(requestLogger.Handler)
 
 	studentHandler := handler.NewStudentHandler(studentService)
 
