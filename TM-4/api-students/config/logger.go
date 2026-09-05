@@ -108,3 +108,7 @@ func CloseLogger() {
 		_ = logFile.Close()
 	}
 }
+
+func LogRequest(data interface{}) {
+	// nanti menangani rotasi + penulisan
+}
