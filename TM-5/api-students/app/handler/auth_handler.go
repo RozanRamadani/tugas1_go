@@ -8,6 +8,7 @@ import (
 	"api-students/app/model"
 	"api-students/app/repository"
 	"api-students/app/service"
+	"api-students/middleware"
 )
 
 type AuthHandler struct {
@@ -212,5 +213,48 @@ func (h *AuthHandler) Logout(c *fiber.Ctx) error {
 		c,
 		"logout berhasil",
 		nil,
+	)
+}
+
+// ============================================================
+// GET /auth/me
+// ============================================================
+
+func (h *AuthHandler) Me(c *fiber.Ctx) error {
+
+	userID, okUser := c.Locals(middleware.UserIDKey).(int)
+	if !okUser || userID == 0 {
+		return fail(
+			c,
+			fiber.StatusUnauthorized,
+			"belum terautentikasi",
+		)
+	}
+
+	user, err := h.authService.Me(
+		c.Context(),
+		userID,
+	)
+
+	if errors.Is(err, repository.ErrUserNotFound) {
+		return fail(
+			c,
+			fiber.StatusNotFound,
+			"user tidak ditemukan",
+		)
+	}
+
+	if err != nil {
+		return fail(
+			c,
+			fiber.StatusInternalServerError,
+			"gagal mengambil data user",
+		)
+	}
+
+	return ok(
+		c,
+		"profil berhasil diambil",
+		user,
 	)
 }

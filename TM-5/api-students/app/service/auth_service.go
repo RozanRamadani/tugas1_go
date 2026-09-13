@@ -288,3 +288,14 @@ func (s *AuthService) Logout(
 
 	return err
 }
+
+// ============================================================
+// ME (PROFILE)
+// ============================================================
+
+func (s *AuthService) Me(
+	ctx context.Context,
+	userID int,
+) (model.User, error) {
+	return s.userRepo.FindByID(ctx, userID)
+}

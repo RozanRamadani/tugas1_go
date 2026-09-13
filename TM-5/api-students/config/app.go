@@ -12,7 +12,11 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func NewApp(studentService *service.StudentService, jwtManager *helper.JWTManager) *fiber.App {
+func NewApp(
+	studentService *service.StudentService,
+	authService *service.AuthService,
+	jwtManager *helper.JWTManager,
+) *fiber.App {
 
 	app := fiber.New()
 
@@ -25,10 +29,12 @@ func NewApp(studentService *service.StudentService, jwtManager *helper.JWTManage
 	app.Use(requestLogger.Handler)
 
 	studentHandler := handler.NewStudentHandler(studentService)
+	authHandler := handler.NewAuthHandler(authService)
 
 	route.Register(
 		app,
 		studentHandler,
+		authHandler,
 		jwtManager,
 	)
 

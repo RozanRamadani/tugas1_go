@@ -3,8 +3,10 @@ package middleware
 import (
 	"errors"
 	"strings"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/limiter"
 
 	"api-students/helper"
 )
@@ -104,4 +106,21 @@ func RequireRole(roles ...string) fiber.Handler {
 			"message": "akses ditolak",
 		})
 	}
+}
+
+func LoginRateLimiter() fiber.Handler {
+	return limiter.New(limiter.Config{
+		Max:        5,
+		Expiration: 1 * time.Minute,
+		KeyGenerator: func(c *fiber.Ctx) string {
+			return c.IP()
+		},
+		LimitReached: func(c *fiber.Ctx) error {
+			c.Set("Retry-After", "60")
+			return c.Status(fiber.StatusTooManyRequests).JSON(fiber.Map{
+				"success": false,
+				"message": "terlalu banyak percobaan login, coba lagi dalam satu menit",
+			})
+		},
+	})
 }

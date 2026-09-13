@@ -30,6 +30,8 @@ func main() {
 	defer pool.Close()
 
 	studentRepo := repository.NewStudentRepository(pool)
+	userRepo := repository.NewUserRepository(pool)
+	tokenRepo := repository.NewTokenRepository(pool)
 
 	studentService := service.NewStudentService(studentRepo)
 
@@ -37,7 +39,9 @@ func main() {
 	jwtIssuer := config.GetEnv("JWT_ISSUER", "praktikum-backend")
 	jwtManager := helper.NewJWTManager(jwtSecret, jwtIssuer, 15*time.Minute, 7*24*time.Hour)
 
-	app := config.NewApp(studentService, jwtManager)
+	authService := service.NewAuthService(userRepo, tokenRepo, jwtManager)
+
+	app := config.NewApp(studentService, authService, jwtManager)
 
 	log.Println("Server berjalan di http://localhost:3000")
 

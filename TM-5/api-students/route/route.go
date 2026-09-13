@@ -11,6 +11,7 @@ import (
 func Register(
 	app *fiber.App,
 	studentHandler *handler.StudentHandler,
+	authHandler *handler.AuthHandler,
 	jwtManager *helper.JWTManager,
 ) {
 	api := app.Group("/api/v1")
@@ -21,6 +22,13 @@ func Register(
 			"message": "server berjalan",
 		})
 	})
+
+	auth := api.Group("/auth", middleware.RequireJSON)
+	auth.Post("/register", authHandler.Register)
+	auth.Post("/login", middleware.LoginRateLimiter(), authHandler.Login)
+	auth.Post("/refresh", authHandler.Refresh)
+	auth.Post("/logout", authHandler.Logout)
+	auth.Get("/me", middleware.RequireAuth(jwtManager), authHandler.Me)
 
 	students := api.Group(
 		"/students",
