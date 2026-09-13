@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"errors"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
@@ -22,11 +23,12 @@ func RequireAuth(jwtManager *helper.JWTManager) fiber.Handler {
 		)
 
 		if authHeader == "" {
+			c.Set("WWW-Authenticate", `Bearer realm="api"`)
 			return c.Status(
 				fiber.StatusUnauthorized,
 			).JSON(fiber.Map{
 				"success": false,
-				"message": "authorization header wajib diisi",
+				"message": "header Authorization tidak ada atau salah bentuk",
 			})
 		}
 
@@ -35,11 +37,12 @@ func RequireAuth(jwtManager *helper.JWTManager) fiber.Handler {
 		if len(parts) != 2 ||
 			!strings.EqualFold(parts[0], "Bearer") {
 
+			c.Set("WWW-Authenticate", `Bearer realm="api"`)
 			return c.Status(
 				fiber.StatusUnauthorized,
 			).JSON(fiber.Map{
 				"success": false,
-				"message": "format authorization harus Bearer <token>",
+				"message": "header Authorization tidak ada atau salah bentuk",
 			})
 		}
 
@@ -48,6 +51,16 @@ func RequireAuth(jwtManager *helper.JWTManager) fiber.Handler {
 		claims, err := jwtManager.ParseAccessToken(token)
 
 		if err != nil {
+			c.Set("WWW-Authenticate", `Bearer realm="api"`)
+			if errors.Is(err, helper.ErrExpiredToken) {
+				return c.Status(
+					fiber.StatusUnauthorized,
+				).JSON(fiber.Map{
+					"success": false,
+					"message": "access token kedaluwarsa",
+				})
+			}
+
 			return c.Status(
 				fiber.StatusUnauthorized,
 			).JSON(fiber.Map{

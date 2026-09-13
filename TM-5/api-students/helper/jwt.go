@@ -8,6 +8,11 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
+var (
+	ErrInvalidToken = errors.New("token tidak valid")
+	ErrExpiredToken = errors.New("token sudah kedaluwarsa")
+)
+
 type JWTManager struct {
 	Secret     string
 	Issuer     string
@@ -72,23 +77,27 @@ func (j *JWTManager) ParseAccessToken(
 		&Claims{},
 		func(token *jwt.Token) (interface{}, error) {
 
-			if token.Method != jwt.SigningMethodHS256 {
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 				return nil, errors.New("algoritma JWT tidak valid")
 			}
 
 			return []byte(j.Secret), nil
 		},
 		jwt.WithIssuer(j.Issuer),
+		jwt.WithExpirationRequired(),
 	)
 
 	if err != nil {
-		return nil, err
+		if errors.Is(err, jwt.ErrTokenExpired) {
+			return nil, ErrExpiredToken
+		}
+		return nil, ErrInvalidToken
 	}
 
 	claims, ok := token.Claims.(*Claims)
 
 	if !ok || !token.Valid {
-		return nil, errors.New("token tidak valid")
+		return nil, ErrInvalidToken
 	}
 
 	return claims, nil
