@@ -2,6 +2,7 @@ package route
 
 import (
 	"api-students/app/handler"
+	"api-students/helper"
 	"api-students/middleware"
 
 	"github.com/gofiber/fiber/v2"
@@ -10,6 +11,7 @@ import (
 func Register(
 	app *fiber.App,
 	studentHandler *handler.StudentHandler,
+	jwtManager *helper.JWTManager,
 ) {
 	api := app.Group("/api/v1")
 
@@ -23,6 +25,7 @@ func Register(
 	students := api.Group(
 		"/students",
 		middleware.RequireJSON,
+		middleware.RequireAuth(jwtManager),
 	)
 
 	students.Get("/", studentHandler.List)

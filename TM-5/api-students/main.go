@@ -3,11 +3,13 @@ package main
 import (
 	"context"
 	"log"
+	"time"
 
 	"api-students/app/repository"
 	"api-students/app/service"
 	"api-students/config"
 	"api-students/database"
+	"api-students/helper"
 )
 
 func main() {
@@ -31,7 +33,11 @@ func main() {
 
 	studentService := service.NewStudentService(studentRepo)
 
-	app := config.NewApp(studentService)
+	jwtSecret := config.GetEnv("JWT_SECRET", "super-secret-key-praktikum-backend-32byte")
+	jwtIssuer := config.GetEnv("JWT_ISSUER", "praktikum-backend")
+	jwtManager := helper.NewJWTManager(jwtSecret, jwtIssuer, 15*time.Minute, 7*24*time.Hour)
+
+	app := config.NewApp(studentService, jwtManager)
 
 	log.Println("Server berjalan di http://localhost:3000")
 

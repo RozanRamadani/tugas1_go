@@ -5,13 +5,14 @@ import (
 
 	"api-students/app/handler"
 	"api-students/app/service"
+	"api-students/helper"
 	"api-students/middleware"
 	"api-students/route"
 
 	"github.com/gofiber/fiber/v2"
 )
 
-func NewApp(studentService *service.StudentService) *fiber.App {
+func NewApp(studentService *service.StudentService, jwtManager *helper.JWTManager) *fiber.App {
 
 	app := fiber.New()
 
@@ -28,6 +29,7 @@ func NewApp(studentService *service.StudentService) *fiber.App {
 	route.Register(
 		app,
 		studentHandler,
+		jwtManager,
 	)
 
 	log.Println("route berhasil didaftarkan")
