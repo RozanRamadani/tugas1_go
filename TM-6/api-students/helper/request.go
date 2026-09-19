@@ -61,3 +61,10 @@ func ParseListQuery(c *fiber.Ctx) ListQuery {
 
 	return q
 }
+
+// CurrentUser mengambil AuthUser yang tersimpan dalam Ctx (dari JWT).
+func CurrentUser(c *fiber.Ctx) (model.AuthUser, bool) {
+	user, ok := c.Locals("user").(model.AuthUser)
+	return user, ok
+}
+

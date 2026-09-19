@@ -16,6 +16,7 @@ func NewApp(
 	studentService *service.StudentService,
 	authService *service.AuthService,
 	jwtManager *helper.JWTManager,
+	perms *helper.PermissionSet,
 ) *fiber.App {
 
 	app := fiber.New()
@@ -28,14 +29,20 @@ func NewApp(
 
 	app.Use(requestLogger.Handler)
 
-	studentHandler := handler.NewStudentHandler(studentService)
-	authHandler := handler.NewAuthHandler(authService)
+	studentHandler := handler.NewStudentHandler(
+		studentService,
+	)
+
+	authHandler := handler.NewAuthHandler(
+		authService,
+	)
 
 	route.Register(
 		app,
 		studentHandler,
 		authHandler,
 		jwtManager,
+		perms,
 	)
 
 	log.Println("route berhasil didaftarkan")

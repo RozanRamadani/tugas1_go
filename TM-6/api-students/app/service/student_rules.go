@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"api-students/app/model"
+	"errors"
 )
 
 // ValidateCreate memvalidasi data student untuk POST.
@@ -105,3 +106,5 @@ type ValidationError struct {
 func (e ValidationError) Error() string {
 	return "validation error"
 }
+
+var ErrForbidden = errors.New("akses ditolak")

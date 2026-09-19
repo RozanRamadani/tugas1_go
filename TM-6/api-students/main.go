@@ -17,33 +17,106 @@ func main() {
 	config.LoadEnv()
 
 	if err := config.InitLogger(); err != nil {
-		log.Fatal("gagal menginisialisasi logger:", err)
+		log.Fatal(
+			"gagal menginisialisasi logger:",
+			err,
+		)
 	}
 
 	defer config.CloseLogger()
 
-	pool, err := database.NewPool(context.Background())
+	pool, err := database.NewPool(
+		context.Background(),
+	)
+
 	if err != nil {
-		log.Fatal("gagal terhubung ke database:", err)
+		log.Fatal(
+			"gagal terhubung ke database:",
+			err,
+		)
 	}
 
 	defer pool.Close()
 
+	// ============================================================
+	// REPOSITORY
+	// ============================================================
+
 	studentRepo := repository.NewStudentRepository(pool)
 	userRepo := repository.NewUserRepository(pool)
 	tokenRepo := repository.NewTokenRepository(pool)
+	roleRepo := repository.NewRoleRepository(pool)
 
-	studentService := service.NewStudentService(studentRepo)
+	// ============================================================
+	// PERMISSION
+	// ============================================================
 
-	jwtSecret := config.GetEnv("JWT_SECRET", "super-secret-key-praktikum-backend-32byte")
-	jwtIssuer := config.GetEnv("JWT_ISSUER", "praktikum-backend")
-	jwtManager := helper.NewJWTManager(jwtSecret, jwtIssuer, 15*time.Minute, 7*24*time.Hour)
+	rawPermissions, err := roleRepo.LoadPermissions(
+		context.Background(),
+	)
 
-	authService := service.NewAuthService(userRepo, tokenRepo, jwtManager)
+	if err != nil {
+		log.Fatal(
+			"gagal memuat permission:",
+			err,
+		)
+	}
 
-	app := config.NewApp(studentService, authService, jwtManager)
+	permissionSet := helper.NewPermissionSet(
+		rawPermissions,
+	)
 
-	log.Println("Server berjalan di http://localhost:3000")
+	log.Printf(
+		"permission dimuat, roles=%v",
+		permissionSet.KnownRoles(),
+	)
+
+	// ============================================================
+	// SERVICE
+	// ============================================================
+
+	studentService := service.NewStudentService(
+		studentRepo,
+		permissionSet,
+	)
+
+	jwtSecret := config.GetEnv(
+		"JWT_SECRET",
+		"super-secret-key-praktikum-backend-32byte",
+	)
+
+	jwtIssuer := config.GetEnv(
+		"JWT_ISSUER",
+		"praktikum-backend",
+	)
+
+	jwtManager := helper.NewJWTManager(
+		jwtSecret,
+		jwtIssuer,
+		15*time.Minute,
+		7*24*time.Hour,
+	)
+
+	authService := service.NewAuthService(
+		userRepo,
+		tokenRepo,
+		jwtManager,
+	)
+
+	// ============================================================
+	// APPLICATION
+	// ============================================================
+
+	app := config.NewApp(
+		studentService,
+		authService,
+		jwtManager,
+		permissionSet,
+	)
+
+	log.Println(
+		"Server berjalan di http://localhost:3000",
+	)
 
 	if err := app.Listen(":3000"); err != nil {
 		log.Fatal(err)

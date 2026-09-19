@@ -5,25 +5,27 @@ import (
 	"api-students/helper"
 )
 
-// CanAccessStudent memutuskan apakah seseorang boleh menyentuh data mahasiswa.
+// CanAccessStudent menentukan apakah user boleh mengakses
+// data student tertentu.
 //
-// Dua jalur yang diizinkan:
-// 1. Kepemilikan (ownership) — ownerID mahasiswa sama dengan UserID pemanggil.
-// 2. Permission — role-nya memiliki permission :any yang sesuai.
+// User boleh mengakses jika:
+// 1. User adalah owner dari student tersebut.
+// 2. User memiliki permission :any yang sesuai.
 //
-// Urutannya disengaja: pemeriksaan kepemilikan didahulukan karena paling
-// murah dan paling sering benar. Bila keduanya gagal, jawabannya false.
+// Ownership diperiksa di service layer karena membutuhkan
+// data student dari database.
 func CanAccessStudent(
 	current model.AuthUser,
 	ownerID int,
 	perms *helper.PermissionSet,
 	anyPermission string,
 ) bool {
-	// Jalur 1: Kepemilikan (ownership)
+
+	// Owner selalu boleh mengakses datanya sendiri.
 	if current.UserID == ownerID {
 		return true
 	}
 
-	// Jalur 2: Permission :any
+	// Selain owner, harus mempunyai permission :any.
 	return perms.Can(current.Role, anyPermission)
 }

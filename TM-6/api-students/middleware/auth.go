@@ -5,15 +5,17 @@ import (
 	"strings"
 	"time"
 
+	"api-students/app/model"
+	"api-students/helper"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/limiter"
-
-	"api-students/helper"
 )
 
 const (
 	UserIDKey = "user_id"
 	RoleKey   = "role"
+	UserKey   = "user"
 )
 
 func RequireAuth(jwtManager *helper.JWTManager) fiber.Handler {
@@ -25,7 +27,11 @@ func RequireAuth(jwtManager *helper.JWTManager) fiber.Handler {
 		)
 
 		if authHeader == "" {
-			c.Set("WWW-Authenticate", `Bearer realm="api"`)
+			c.Set(
+				"WWW-Authenticate",
+				`Bearer realm="api"`,
+			)
+
 			return c.Status(
 				fiber.StatusUnauthorized,
 			).JSON(fiber.Map{
@@ -39,7 +45,11 @@ func RequireAuth(jwtManager *helper.JWTManager) fiber.Handler {
 		if len(parts) != 2 ||
 			!strings.EqualFold(parts[0], "Bearer") {
 
-			c.Set("WWW-Authenticate", `Bearer realm="api"`)
+			c.Set(
+				"WWW-Authenticate",
+				`Bearer realm="api"`,
+			)
+
 			return c.Status(
 				fiber.StatusUnauthorized,
 			).JSON(fiber.Map{
@@ -53,8 +63,16 @@ func RequireAuth(jwtManager *helper.JWTManager) fiber.Handler {
 		claims, err := jwtManager.ParseAccessToken(token)
 
 		if err != nil {
-			c.Set("WWW-Authenticate", `Bearer realm="api"`)
-			if errors.Is(err, helper.ErrExpiredToken) {
+
+			c.Set(
+				"WWW-Authenticate",
+				`Bearer realm="api"`,
+			)
+
+			if errors.Is(
+				err,
+				helper.ErrExpiredToken,
+			) {
 				return c.Status(
 					fiber.StatusUnauthorized,
 				).JSON(fiber.Map{
@@ -71,6 +89,16 @@ func RequireAuth(jwtManager *helper.JWTManager) fiber.Handler {
 			})
 		}
 
+		// Simpan AuthUser lengkap.
+		user := model.AuthUser{
+			UserID: claims.UserID,
+			Role:   claims.Role,
+		}
+
+		c.Locals(UserKey, user)
+
+		// Tetap simpan nilai individual agar kompatibel
+		// dengan kode lama.
 		c.Locals(UserIDKey, claims.UserID)
 		c.Locals(RoleKey, claims.Role)
 
@@ -109,15 +137,25 @@ func RequireRole(roles ...string) fiber.Handler {
 }
 
 func LoginRateLimiter() fiber.Handler {
+
 	return limiter.New(limiter.Config{
 		Max:        5,
 		Expiration: 1 * time.Minute,
+
 		KeyGenerator: func(c *fiber.Ctx) string {
 			return c.IP()
 		},
+
 		LimitReached: func(c *fiber.Ctx) error {
-			c.Set("Retry-After", "60")
-			return c.Status(fiber.StatusTooManyRequests).JSON(fiber.Map{
+
+			c.Set(
+				"Retry-After",
+				"60",
+			)
+
+			return c.Status(
+				fiber.StatusTooManyRequests,
+			).JSON(fiber.Map{
 				"success": false,
 				"message": "terlalu banyak percobaan login, coba lagi dalam satu menit",
 			})

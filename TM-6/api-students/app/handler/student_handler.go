@@ -8,6 +8,7 @@ import (
 	"api-students/app/model"
 	"api-students/app/repository"
 	"api-students/app/service"
+	"api-students/helper"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -28,39 +29,58 @@ func NewStudentHandler(
 // GET /students
 // ============================================================
 
-func (h *StudentHandler) List(c *fiber.Ctx) error {
+func (h *StudentHandler) Get(c *fiber.Ctx) error {
 
-	q := parseListQuery(c)
+	id := strings.TrimSpace(c.Params("id"))
 
-	students, total, err := h.service.List(
+	if id == "" {
+		return fail(
+			c,
+			fiber.StatusBadRequest,
+			"id wajib diisi",
+		)
+	}
+
+	result, err := h.service.Replace(
 		c.Context(),
-		q,
+		id,
+		req,
 	)
+
+	student, err := h.service.Get(
+		c.Context(),
+		id,
+		currentUser,
+	)
+
+	if errors.Is(err, service.ErrForbidden) {
+		return fail(
+			c,
+			fiber.StatusForbidden,
+			"Anda tidak memiliki akses ke student ini",
+		)
+	}
+
+	if errors.Is(err, repository.ErrNotFound) {
+		return fail(
+			c,
+			fiber.StatusNotFound,
+			"student tidak ditemukan",
+		)
+	}
 
 	if err != nil {
 		return fail(
 			c,
 			fiber.StatusInternalServerError,
-			"gagal mengambil data student",
+			"gagal mengambil student",
 		)
 	}
 
-	totalPages := 0
-
-	if q.Limit > 0 {
-		totalPages = (total + q.Limit - 1) / q.Limit
-	}
-
-	return okList(
+	return ok(
 		c,
-		"daftar student berhasil diambil",
-		students,
-		&Meta{
-			Page:       q.Page,
-			Limit:      q.Limit,
-			Total:      total,
-			TotalPages: totalPages,
-		},
+		"student ditemukan",
+		student,
 	)
 }
 
@@ -124,9 +144,20 @@ func (h *StudentHandler) Create(c *fiber.Ctx) error {
 		)
 	}
 
+	currentUser, ok := helper.CurrentUser(c)
+
+	if !ok {
+		return fail(
+			c,
+			fiber.StatusUnauthorized,
+			"belum terautentikasi",
+		)
+	}
+
 	result, err := h.service.Create(
 		c.Context(),
 		req,
+		currentUser,
 	)
 
 	var validationErr *service.ValidationError

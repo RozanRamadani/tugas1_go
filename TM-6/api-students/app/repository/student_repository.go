@@ -152,6 +152,7 @@ func (r *postgresStudentRepository) FindAll(
 			name,
 			grade,
 			is_active,
+			COALESCE(owner_id, 0),
 			created_at
 		FROM students
 		%s
@@ -196,6 +197,7 @@ func (r *postgresStudentRepository) FindAll(
 			&student.Name,
 			&student.Grade,
 			&student.IsActive,
+			&student.OwnerID,
 			&student.CreatedAt,
 		)
 
@@ -231,6 +233,7 @@ func (r *postgresStudentRepository) FindByID(
 			name,
 			grade,
 			is_active,
+			COALESCE(owner_id, 0),
 			created_at
 		FROM students
 		WHERE id = $1
@@ -246,6 +249,7 @@ func (r *postgresStudentRepository) FindByID(
 		&student.Name,
 		&student.Grade,
 		&student.IsActive,
+		&student.OwnerID,
 		&student.CreatedAt,
 	)
 
@@ -275,15 +279,17 @@ func (r *postgresStudentRepository) Create(
 			nim,
 			name,
 			grade,
-			is_active
+			is_active,
+			owner_id
 		)
-		VALUES ($1, $2, $3, $4, $5)
+		VALUES ($1, $2, $3, $4, $5, $6)
 		RETURNING
 			id,
 			nim,
 			name,
 			grade,
 			is_active,
+			COALESCE(owner_id, 0),
 			created_at
 	`
 
@@ -297,12 +303,14 @@ func (r *postgresStudentRepository) Create(
 		student.Name,
 		student.Grade,
 		student.IsActive,
+		student.OwnerID,
 	).Scan(
 		&result.ID,
 		&result.NIM,
 		&result.Name,
 		&result.Grade,
 		&result.IsActive,
+		&result.OwnerID,
 		&result.CreatedAt,
 	)
 
@@ -341,6 +349,7 @@ func (r *postgresStudentRepository) Update(
 			name,
 			grade,
 			is_active,
+			COALESCE(owner_id, 0),
 			created_at
 	`
 
@@ -360,8 +369,10 @@ func (r *postgresStudentRepository) Update(
 		&result.Name,
 		&result.Grade,
 		&result.IsActive,
+		&result.OwnerID,
 		&result.CreatedAt,
 	)
+
 
 	if errors.Is(err, pgx.ErrNoRows) {
 		return model.Student{}, ErrNotFound
