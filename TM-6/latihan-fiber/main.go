@@ -11,7 +11,9 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/requestid"
 
 	"latihan-fiber/app/repository"
+	"latihan-fiber/app/service"
 	"latihan-fiber/config"
+
 	"latihan-fiber/database"
 	"latihan-fiber/helper"
 	"latihan-fiber/route"
@@ -32,7 +34,9 @@ func main() {
 	// ============================================================
 	// 2. RAKIT DEPENDENCY & LOAD PERMISSION (LANGKAH 4)
 	// ============================================================
+	userRepository := repository.NewUserRepository(pool)
 	roleRepository := repository.NewRoleRepository(pool)
+
 
 	rawPermissions, err := roleRepository.LoadPermissions(context.Background())
 	if err != nil {
@@ -42,6 +46,8 @@ func main() {
 	permissions := helper.NewPermissionSet(rawPermissions)
 
 	log.Printf("permission dimuat, roles=%v", permissions.KnownRoles())
+
+	userService := service.NewUserService(userRepository, permissions)
 
 	// ============================================================
 	// 3. BUAT APLIKASI FIBER & GLOBAL MIDDLEWARE
@@ -55,12 +61,14 @@ func main() {
 	app.Use(cors.New())
 
 	// ============================================================
-	// 4. REGISTER ROUTES (LANGKAH 6)
+	// 4. REGISTER ROUTES (LANGKAH 6 & 7)
 	// ============================================================
 	route.Register(app, route.Dependencies{
 		Pool:        pool,
 		Permissions: permissions,
+		UserService: userService,
 	})
+
 
 	// ============================================================
 	// 5. JALANKAN SERVER

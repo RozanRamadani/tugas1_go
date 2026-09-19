@@ -34,8 +34,10 @@ type UserRepository interface {
 	FindByID(ctx context.Context, id int) (model.User, error)
 	Create(ctx context.Context, u model.User) (model.User, error)
 	Update(ctx context.Context, u model.User) (model.User, error)
+	UpdateRole(ctx context.Context, id int, role string) (model.User, error)
 	Delete(ctx context.Context, id int) error
 }
+
 
 // kolomUrut adalah daftar putih kolom yang boleh digunakan
 // untuk ORDER BY.
@@ -343,7 +345,35 @@ func (r *userPostgresRepository) Update(
 	return u, nil
 }
 
+// UpdateRole sengaja dipisah dari Update. Mengubah role adalah tindakan
+// istimewa yang dijaga permission tersendiri, sehingga tidak boleh ikut
+// terbawa oleh endpoint perubahan data biasa.
+func (r *userPostgresRepository) UpdateRole(
+	ctx context.Context, id int, role string,
+) (model.User, error) {
+	var u model.User
+	err := r.pool.QueryRow(ctx,
+		"UPDATE users SET role = $1 WHERE id = $2 RETURNING id, username, email, password, is_active, created_at",
+		role, id,
+	).Scan(
+		&u.ID,
+		&u.Username,
+		&u.Email,
+		&u.Password,
+		&u.IsActive,
+		&u.CreatedAt,
+	)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return model.User{}, ErrNotFound
+		}
+		return model.User{}, fmt.Errorf("mengubah role user: %w", err)
+	}
+	return u, nil
+}
+
 // Delete menghapus user berdasarkan ID.
+
 func (r *userPostgresRepository) Delete(
 	ctx context.Context,
 	id int,

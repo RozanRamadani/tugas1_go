@@ -4,91 +4,52 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/jackc/pgx/v5/pgxpool"
 
+	"latihan-fiber/app/service"
 	"latihan-fiber/helper"
 	"latihan-fiber/middleware"
 )
 
-// Dependencies menampung seluruh dependency yang dibutuhkan oleh route handler.
-// Dengan struct ini, menambahkan service/helper baru cukup menambah field di sini.
 type Dependencies struct {
 	Pool        *pgxpool.Pool
 	Permissions *helper.PermissionSet
-	// UserService & AuthService akan dimasukkan saat Langkah 7
+	UserService *service.UserService
 }
 
-// Register mendaftarkan seluruh endpoint aplikasi beserta penjaganya (middleware).
 func Register(app *fiber.App, deps Dependencies) {
 	api := app.Group("/api/v1")
 
-	// ------------------------------------------------------------
-	// 1. ENDPOINT PUBLIK
-	// ------------------------------------------------------------
+	// --- publik ---
 	api.Get("/health", healthCheck(deps.Pool))
 
-	// ------------------------------------------------------------
-	// 2. ENDPOINT USERS (Wajib Login & Diperiksa Hak Aksesnya)
-	// ------------------------------------------------------------
-	// Group /users ini langsung dipasangi RequireJSON & RequireAuth.
-	// Tanpa token sah, request akan ditolak dengan HTTP 401 Unauthorized.
+	// --- users ---
 	users := api.Group("/users")
-
 	perms := deps.Permissions
 
-	// ------------------------------------------------------------
-	// KATEGORI A: Hak Akses Tanpa Melihat Isi Data -> Diperiksa di Middleware
-	// ------------------------------------------------------------
-
-	// GET /api/v1/users -> Melihat daftar seluruh user
+	// Hak dapat diputuskan tanpa melihat data -> middleware
 	users.Get("/",
 		middleware.RequirePermission(perms, "user:list"),
-		func(c *fiber.Ctx) error {
-			return c.SendString("List user")
-		},
+		deps.UserService.List,
 	)
 
-	// POST /api/v1/users -> Menambah user baru
 	users.Post("/",
 		middleware.RequirePermission(perms, "user:update:any"),
-		func(c *fiber.Ctx) error {
-			return c.SendString("Create user")
-		},
+		deps.UserService.Create,
 	)
 
-	// DELETE /api/v1/users/:id -> Menghapus user
 	users.Delete("/:id",
 		middleware.RequirePermission(perms, "user:delete"),
-		func(c *fiber.Ctx) error {
-			return c.SendString("Delete user")
-		},
+		deps.UserService.Delete,
 	)
 
-	// PATCH /api/v1/users/:id/role -> Mengubah role milik user lain
 	users.Patch("/:id/role",
 		middleware.RequirePermission(perms, "role:assign"),
-		func(c *fiber.Ctx) error {
-			return c.SendString("Assign role user")
-		},
+		deps.UserService.AssignRole,
 	)
 
-	// ------------------------------------------------------------
-	// KATEGORI B: Hak Akses Bergantung Kepemilikan Data -> Diperiksa di Service
-	// ------------------------------------------------------------
-	// Ketiga endpoint ini terlihat tidak dipasangi RequirePermission di sini.
-	// Mengapa? Karena middleware belum tahu apakah :id yang diminta adalah
-	// milik pemanggil sendiri atau milik orang lain.
-	// Pengecekannya diserahkan ke layer Service (Langkah 7).
-
-	users.Get("/:id", func(c *fiber.Ctx) error {
-		return c.SendString("Get user by ID (diperiksa di service)")
-	})
-
-	users.Put("/:id", func(c *fiber.Ctx) error {
-		return c.SendString("Replace user (diperiksa di service)")
-	})
-
-	users.Patch("/:id", func(c *fiber.Ctx) error {
-		return c.SendString("Patch user (diperiksa di service)")
-	})
+	// Hak bergantung pada kepemilikan data -> diperiksa di service
+	users.Get("/:id", deps.UserService.Get)
+	users.Put("/:id", deps.UserService.Replace)
+	users.Patch("/:id", deps.UserService.Patch)
 }
 
 func healthCheck(pool *pgxpool.Pool) fiber.Handler {
@@ -99,3 +60,4 @@ func healthCheck(pool *pgxpool.Pool) fiber.Handler {
 		})
 	}
 }
+
