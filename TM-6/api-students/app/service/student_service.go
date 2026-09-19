@@ -10,8 +10,6 @@ import (
 	"api-students/helper"
 )
 
-var ErrForbidden = errors.New("akses ditolak")
-
 type StudentService struct {
 	repo  repository.StudentRepository
 	perms *helper.PermissionSet

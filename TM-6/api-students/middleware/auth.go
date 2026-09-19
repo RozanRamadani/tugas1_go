@@ -89,7 +89,8 @@ func RequireAuth(jwtManager *helper.JWTManager) fiber.Handler {
 			})
 		}
 
-		// Simpan AuthUser lengkap.
+		// Simpan AuthUser agar dapat digunakan
+		// oleh handler/service melalui helper.CurrentUser().
 		user := model.AuthUser{
 			UserID: claims.UserID,
 			Role:   claims.Role,
@@ -97,42 +98,12 @@ func RequireAuth(jwtManager *helper.JWTManager) fiber.Handler {
 
 		c.Locals(UserKey, user)
 
-		// Tetap simpan nilai individual agar kompatibel
-		// dengan kode lama.
+		// Tetap simpan data individual untuk kompatibilitas
+		// dengan kode lain yang mungkin masih menggunakannya.
 		c.Locals(UserIDKey, claims.UserID)
 		c.Locals(RoleKey, claims.Role)
 
 		return c.Next()
-	}
-}
-
-func RequireRole(roles ...string) fiber.Handler {
-
-	return func(c *fiber.Ctx) error {
-
-		currentRole, ok := c.Locals(RoleKey).(string)
-
-		if !ok || currentRole == "" {
-			return c.Status(
-				fiber.StatusForbidden,
-			).JSON(fiber.Map{
-				"success": false,
-				"message": "role tidak ditemukan",
-			})
-		}
-
-		for _, role := range roles {
-			if currentRole == role {
-				return c.Next()
-			}
-		}
-
-		return c.Status(
-			fiber.StatusForbidden,
-		).JSON(fiber.Map{
-			"success": false,
-			"message": "akses ditolak",
-		})
 	}
 }
 
