@@ -7,16 +7,16 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
-	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/requestid"
 
 	"latihan-fiber/app/repository"
 	"latihan-fiber/app/service"
 	"latihan-fiber/config"
-
 	"latihan-fiber/database"
 	"latihan-fiber/helper"
+	"latihan-fiber/middleware"
 	"latihan-fiber/route"
+
 )
 
 func main() {
@@ -57,8 +57,9 @@ func main() {
 	})
 
 	app.Use(requestid.New())
-	app.Use(logger.New())
+	app.Use(middleware.RequestLogger())
 	app.Use(cors.New())
+
 
 	// ============================================================
 	// 4. REGISTER ROUTES (LANGKAH 6 & 7)
