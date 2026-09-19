@@ -4,6 +4,8 @@ import (
 	"strconv"
 	"strings"
 
+	"api-students/app/model"
+
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -62,9 +64,10 @@ func ParseListQuery(c *fiber.Ctx) ListQuery {
 	return q
 }
 
-// CurrentUser mengambil AuthUser yang tersimpan dalam Ctx (dari JWT).
+// CurrentUser mengambil AuthUser yang disimpan
+// oleh middleware RequireAuth.
 func CurrentUser(c *fiber.Ctx) (model.AuthUser, bool) {
 	user, ok := c.Locals("user").(model.AuthUser)
+
 	return user, ok
 }
-
