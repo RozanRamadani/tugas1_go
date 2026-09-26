@@ -6,13 +6,14 @@ import (
 )
 
 const (
-	CodeValidation   = "VALIDATION_ERROR"
-	CodeBadRequest   = "BAD_REQUEST"
-	CodeUnauthorized = "UNAUTHORIZED"
-	CodeForbidden    = "FORBIDDEN"
-	CodeNotFound     = "NOT_FOUND"
-	CodeConflict     = "CONFLICT"
-	CodeInternal     = "INTERNAL_ERROR"
+	CodeValidation    = "VALIDATION_ERROR"
+	CodeBadRequest    = "BAD_REQUEST"
+	CodeUnauthorized  = "UNAUTHORIZED"
+	CodeForbidden     = "FORBIDDEN"
+	CodeNotFound      = "NOT_FOUND"
+	CodeConflict      = "CONFLICT"
+	CodeNotAcceptable = "NOT_ACCEPTABLE"
+	CodeInternal      = "INTERNAL_ERROR"
 )
 
 type AppError struct {
@@ -50,6 +51,14 @@ func NotFound(message string) *AppError {
 
 func Conflict(message string) *AppError {
 	return &AppError{Status: fiber.StatusConflict, Code: CodeConflict, Message: message}
+}
+
+func NotAcceptable(message string) *AppError {
+	return &AppError{
+		Status:  fiber.StatusNotAcceptable,
+		Code:    CodeNotAcceptable,
+		Message: message,
+	}
 }
 
 func Validation(fields map[string]string) *AppError {

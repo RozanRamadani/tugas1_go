@@ -28,6 +28,11 @@ func (h *StudentHandler) List(c *fiber.Ctx) error {
 		return err
 	}
 
+	format, err := helper.Negotiate(c, helper.FormatJSON, helper.FormatCSV)
+	if err != nil {
+		return err
+	}
+
 	students, meta, err := h.service.List(
 		c.Context(),
 		query,
@@ -35,6 +40,10 @@ func (h *StudentHandler) List(c *fiber.Ctx) error {
 
 	if err != nil {
 		return err
+	}
+
+	if format == helper.FormatCSV {
+		return helper.WriteStudentsCSV(c, students)
 	}
 
 	return helper.OKList(
