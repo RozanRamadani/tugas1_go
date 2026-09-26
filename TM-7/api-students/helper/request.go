@@ -64,6 +64,38 @@ func ParseListQuery(c *fiber.Ctx) ListQuery {
 	return q
 }
 
+// ParseCursorQuery mengambil parameter untuk Cursor Pagination.
+func ParseCursorQuery(c *fiber.Ctx) (model.CursorQuery, error) {
+	q := model.CursorQuery{
+		Limit:  c.QueryInt("limit", 10),
+		Search: strings.TrimSpace(c.Query("search")),
+	}
+
+	if q.Limit < 1 {
+		q.Limit = 10
+	}
+
+	if q.Limit > 100 {
+		q.Limit = 100
+	}
+
+	if raw := c.Query("is_active"); raw != "" {
+		if v, err := strconv.ParseBool(raw); err == nil {
+			q.IsActive = &v
+		}
+	}
+
+	if cursorStr := c.Query("cursor"); cursorStr != "" {
+		cursor, err := DecodeCursor(cursorStr)
+		if err != nil {
+			return model.CursorQuery{}, BadRequest("cursor tidak valid")
+		}
+		q.After = &cursor
+	}
+
+	return q, nil
+}
+
 // CurrentUser mengambil AuthUser yang disimpan
 // oleh middleware RequireAuth.
 func CurrentUser(c *fiber.Ctx) (model.AuthUser, bool) {

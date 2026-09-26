@@ -23,18 +23,12 @@ func NewStudentHandler(service *service.StudentService) *StudentHandler {
 // ============================================================
 
 func (h *StudentHandler) List(c *fiber.Ctx) error {
-	helperQuery := helper.ParseListQuery(c)
-
-	query := model.ListQuery{
-		Page:     helperQuery.Page,
-		Limit:    helperQuery.Limit,
-		Search:   helperQuery.Search,
-		Sort:     helperQuery.Sort,
-		Order:    helperQuery.Order,
-		IsActive: helperQuery.IsActive,
+	query, err := helper.ParseCursorQuery(c)
+	if err != nil {
+		return err
 	}
 
-	students, total, err := h.service.List(
+	students, meta, err := h.service.List(
 		c.Context(),
 		query,
 	)
@@ -43,22 +37,11 @@ func (h *StudentHandler) List(c *fiber.Ctx) error {
 		return err
 	}
 
-	totalPages := 0
-
-	if query.Limit > 0 {
-		totalPages = (total + query.Limit - 1) / query.Limit
-	}
-
-	return okList(
+	return helper.OKList(
 		c,
 		"berhasil mengambil data student",
 		students,
-		&Meta{
-			Page:       query.Page,
-			Limit:      query.Limit,
-			Total:      total,
-			TotalPages: totalPages,
-		},
+		meta,
 	)
 }
 

@@ -25,6 +25,7 @@ var (
 // Handler cukup memanggil method yang tersedia di interface ini.
 type StudentRepository interface {
 	FindAll(ctx context.Context, q model.ListQuery) ([]model.Student, int, error)
+	FindAfterCursor(ctx context.Context, q model.CursorQuery) ([]model.Student, error)
 	FindByID(ctx context.Context, id string) (model.Student, error)
 	Create(ctx context.Context, student model.Student) (model.Student, error)
 	Update(ctx context.Context, id string, student model.Student) (model.Student, error)
@@ -45,8 +46,69 @@ func NewStudentRepository(pool *pgxpool.Pool) StudentRepository {
 }
 
 // ============================================================
-// FIND ALL
+
+func (r *postgresStudentRepository) FindAfterCursor(
+	ctx context.Context,
+	q model.CursorQuery,
+) ([]model.Student, error) {
+
+	args := []any{}
+	where := "WHERE 1 = 1"
+
+	if q.Search != "" {
+		args = append(args, "%"+q.Search+"%")
+		where += fmt.Sprintf(" AND name ILIKE $%d", len(args))
+	}
+
+	if q.IsActive != nil {
+		args = append(args, *q.IsActive)
+		where += fmt.Sprintf(" AND is_active = $%d", len(args))
+	}
+
+	if q.After != nil {
+		args = append(args, q.After.CreatedAt, q.After.ID)
+		where += fmt.Sprintf(" AND (created_at, id) < ($%d, $%d)", len(args)-1, len(args))
+	}
+
+	args = append(args, q.Limit+1)
+	query := fmt.Sprintf(
+		"SELECT id, nim, name, grade, is_active, COALESCE(owner_id, 0), created_at FROM students %s ORDER BY created_at DESC, id DESC LIMIT $%d",
+		where, len(args),
+	)
+
+	rows, err := r.pool.Query(ctx, query, args...)
+	if err != nil {
+		return nil, fmt.Errorf("mengambil daftar student: %w", err)
+	}
+	defer rows.Close()
+
+	students := []model.Student{}
+	for rows.Next() {
+		var student model.Student
+		err := rows.Scan(
+			&student.ID,
+			&student.NIM,
+			&student.Name,
+			&student.Grade,
+			&student.IsActive,
+			&student.OwnerID,
+			&student.CreatedAt,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("membaca row student: %w", err)
+		}
+		students = append(students, student)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("membaca hasil query: %w", err)
+	}
+
+	return students, nil
+}
+
 // ============================================================
+// FIND ALL
 
 func (r *postgresStudentRepository) FindAll(
 	ctx context.Context,

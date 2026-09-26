@@ -43,9 +43,26 @@ func translateError(err error) error {
 
 func (s *StudentService) List(
 	ctx context.Context,
-	q model.ListQuery,
-) ([]model.Student, int, error) {
-	return s.repo.FindAll(ctx, q)
+	q model.CursorQuery,
+) ([]model.Student, *model.CursorMeta, error) {
+
+	rows, err := s.repo.FindAfterCursor(ctx, q)
+	if err != nil {
+		return nil, nil, translateError(err)
+	}
+
+	hasMore := len(rows) > q.Limit
+	if hasMore {
+		rows = rows[:q.Limit]
+	}
+
+	meta := &model.CursorMeta{Limit: q.Limit, HasMore: hasMore}
+	if hasMore && len(rows) > 0 {
+		last := rows[len(rows)-1]
+		meta.NextCursor = helper.EncodeCursor(last.CreatedAt, last.ID)
+	}
+
+	return rows, meta, nil
 }
 
 // ============================================================
