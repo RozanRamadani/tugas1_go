@@ -74,3 +74,10 @@ type Enrollment struct {
 	CreatedAt     time.Time
 	UpdatedAt     time.Time
 }
+
+// EnrollmentRequest adalah struktur (DTO) khusus untuk menangkap request body pembuatan KRS
+// Perhatikan: StudentID sengaja tidak disertakan di sini karena harus diambil dari JWT.
+type EnrollmentRequest struct {
+	CourseID      uint   `json:"course_id" validate:"required"`
+	TahunAkademik string `json:"tahun_akademik" validate:"required"`
+}
