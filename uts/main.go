@@ -2,14 +2,18 @@ package main
 
 import (
 	"log"
+	"time"
+
 	"siakad-mini/config"
 	"siakad-mini/domain"
 	"siakad-mini/handler"
+	"siakad-mini/helper"
 	"siakad-mini/middleware"
 	"siakad-mini/repository"
 	"siakad-mini/service"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/limiter"
 )
 
 func main() {
@@ -62,7 +66,18 @@ func main() {
 
 	// Rute Publik (Auth)
 	authGroup := api.Group("/auth")
-	authGroup.Post("/login", authHandler.Login)
+
+	// Middleware Rate Limiter untuk Login (Maks 5 kegagalan / menit)
+	loginLimiter := limiter.New(limiter.Config{
+		Max:                    5,
+		Expiration:             1 * time.Minute,
+		SkipSuccessfulRequests: true, // Hanya menghitung status >= 400 sebagai kegagalan
+		LimitReached: func(c *fiber.Ctx) error {
+			return helper.ErrorResponse(c, fiber.StatusTooManyRequests, "Terlalu banyak percobaan login. Silakan coba lagi nanti.")
+		},
+	})
+
+	authGroup.Post("/login", loginLimiter, authHandler.Login)
 	authGroup.Get("/me", middleware.Protected(), authHandler.Me)
 
 	// Rute Student
