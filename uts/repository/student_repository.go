@@ -9,6 +9,7 @@ import (
 type StudentRepository interface {
 	FindAll() ([]domain.Student, error)
 	FindByID(id uint) (*domain.Student, error)
+	FindByUserID(userID uint) (*domain.Student, error)
 	Create(student *domain.Student) error
 	Update(student *domain.Student) error
 	Delete(student *domain.Student) error
@@ -34,6 +35,15 @@ func (r *studentRepository) FindAll() ([]domain.Student, error) {
 func (r *studentRepository) FindByID(id uint) (*domain.Student, error) {
 	var student domain.Student
 	err := r.db.First(&student, id).Error
+	if err != nil {
+		return nil, err
+	}
+	return &student, nil
+}
+
+func (r *studentRepository) FindByUserID(userID uint) (*domain.Student, error) {
+	var student domain.Student
+	err := r.db.Where("user_id = ?", userID).First(&student).Error
 	if err != nil {
 		return nil, err
 	}
