@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"math/rand"
 
 	"siakad-mini/config"
 	"siakad-mini/domain"
@@ -10,7 +11,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-// hashPassword menggunakan algoritma bcrypt untuk mengenkripsi password plain-text
 func hashPassword(password string) string {
 	bytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
@@ -26,51 +26,41 @@ func main() {
 
 	log.Println("Memulai proses seeding database...")
 
-	// ==========================================
-	// 1. Buat Data Admin (Minimal 1)
-	// ==========================================
+	// 1. Buat Data Admin
 	var adminCount int64
 	db.Model(&domain.User{}).Where("role = ?", domain.RoleAdmin).Count(&adminCount)
 	if adminCount == 0 {
 		admin := domain.User{
-			Username: "admin_super",
+			Email:    "admin@siakad.com",
 			Password: hashPassword("admin123"),
 			Role:     domain.RoleAdmin,
 		}
 		db.Create(&admin)
-		log.Println("✅ 1 Admin berhasil dibuat (Username: admin_super, Pass: admin123)")
-	} else {
-		log.Println("⚠️ Admin sudah ada, skip pembuatan admin.")
+		log.Println("✅ 1 Admin berhasil dibuat (Email: admin@siakad.com, Pass: admin123)")
 	}
 
-	// ==========================================
-	// 2. Buat Data Mahasiswa (Minimal 20)
-	// ==========================================
+	// 2. Buat Data Mahasiswa
 	var studentCount int64
 	db.Model(&domain.Student{}).Count(&studentCount)
 	if studentCount == 0 {
-		// Hashing password default mahasiswa (hanya di-hash sekali untuk optimalisasi waktu)
-		defaultPass := hashPassword("mhs123")
+		defaultPass := hashPassword("mhs12345") // minimal 8 karakter sesuai requirement UTS
 		
 		var users []domain.User
 		var students []domain.Student
+		prodiList := []string{"Teknik Informatika", "Sistem Informasi", "Ilmu Komputer"}
 
 		for i := 1; i <= 20; i++ {
-			nim := fmt.Sprintf("112233%02d", i) // Contoh NIM: 11223301 s/d 11223320
+			email := fmt.Sprintf("mhs%02d@student.com", i)
 			
-			// Siapkan entitas User
 			user := domain.User{
-				Username: nim, // Biasanya username mahasiswa menggunakan NIM
+				Email:    email,
 				Password: defaultPass,
 				Role:     domain.RoleMahasiswa,
 			}
 			users = append(users, user)
 		}
-
-		// Insert batch untuk users agar cepat
 		db.Create(&users)
 
-		// Setelah user di-insert, ID-nya akan otomatis terisi. Sekarang buat profil mahasiswa.
 		namaRealistis := []string{
 			"Budi Santoso", "Siti Aminah", "Andi Wijaya", "Rina Marlina", "Dewi Lestari",
 			"Agus Setiawan", "Ayu Wandira", "Reza Rahadian", "Dina Fitriani", "Fajar Nugraha",
@@ -80,41 +70,37 @@ func main() {
 
 		for i, user := range users {
 			student := domain.Student{
-				NIM:    user.Username,
-				Name:   namaRealistis[i],
-				UserID: user.ID,
+				UserID:      user.ID,
+				NIM:         fmt.Sprintf("112233%02d", i+1),
+				Nama:        namaRealistis[i],
+				Prodi:       prodiList[i%3],
+				Angkatan:    2022 + (i % 2), // 2022 atau 2023
+				IpkTerakhir: 3.0 + (rand.Float64() * 1.0), // IPK antara 3.0 - 4.0
 			}
 			students = append(students, student)
 		}
-
-		db.Create(&students) // Batch insert
-		log.Println("✅ 20 Mahasiswa berhasil dibuat (Password default: mhs123)")
-	} else {
-		log.Println("⚠️ Mahasiswa sudah ada, skip pembuatan mahasiswa.")
+		db.Create(&students)
+		log.Println("✅ 20 Mahasiswa berhasil dibuat (Password default: mhs12345)")
 	}
 
-	// ==========================================
-	// 3. Buat Data Mata Kuliah (Minimal 10)
-	// ==========================================
+	// 3. Buat Data Mata Kuliah
 	var courseCount int64
 	db.Model(&domain.Course{}).Count(&courseCount)
 	if courseCount == 0 {
 		courses := []domain.Course{
-			{Code: "IF101", Name: "Algoritma dan Pemrograman", Credits: 3},
-			{Code: "IF102", Name: "Struktur Data", Credits: 3},
-			{Code: "IF103", Name: "Basis Data", Credits: 4},
-			{Code: "IF104", Name: "Pemrograman Web Dasar", Credits: 3},
-			{Code: "IF105", Name: "Pemrograman Backend Lanjut", Credits: 4},
-			{Code: "IF106", Name: "Kecerdasan Buatan", Credits: 3},
-			{Code: "IF107", Name: "Jaringan Komputer", Credits: 3},
-			{Code: "IF108", Name: "Sistem Operasi", Credits: 3},
-			{Code: "IF109", Name: "Keamanan Informasi", Credits: 3},
-			{Code: "IF110", Name: "Rekayasa Perangkat Lunak", Credits: 4},
+			{KodeMk: "IF101", NamaMk: "Algoritma dan Pemrograman", Sks: 3, Semester: 1, Kuota: 40},
+			{KodeMk: "IF102", NamaMk: "Struktur Data", Sks: 3, Semester: 2, Kuota: 40},
+			{KodeMk: "IF103", NamaMk: "Basis Data", Sks: 4, Semester: 3, Kuota: 40},
+			{KodeMk: "IF104", NamaMk: "Pemrograman Web Dasar", Sks: 3, Semester: 3, Kuota: 40},
+			{KodeMk: "IF105", NamaMk: "Pemrograman Backend Lanjut", Sks: 4, Semester: 5, Kuota: 30},
+			{KodeMk: "IF106", NamaMk: "Kecerdasan Buatan", Sks: 3, Semester: 5, Kuota: 40},
+			{KodeMk: "IF107", NamaMk: "Jaringan Komputer", Sks: 3, Semester: 4, Kuota: 40},
+			{KodeMk: "IF108", NamaMk: "Sistem Operasi", Sks: 3, Semester: 4, Kuota: 40},
+			{KodeMk: "IF109", NamaMk: "Keamanan Informasi", Sks: 3, Semester: 6, Kuota: 35},
+			{KodeMk: "IF110", NamaMk: "Rekayasa Perangkat Lunak", Sks: 4, Semester: 6, Kuota: 35},
 		}
 		db.Create(&courses)
 		log.Println("✅ 10 Mata Kuliah berhasil dibuat")
-	} else {
-		log.Println("⚠️ Mata kuliah sudah ada, skip pembuatan mata kuliah.")
 	}
 
 	log.Println("🎉 Proses seeding selesai!")

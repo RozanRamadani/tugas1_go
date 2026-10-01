@@ -31,7 +31,7 @@ func ErrorResponse(c *fiber.Ctx, statusCode int, message string) error {
 // ValidationErrorResponse khusus digunakan ketika request payload (JSON input) gagal tervalidasi.
 // Biasa mengembalikan status 400 Bad Request beserta daftar error detailnya.
 func ValidationErrorResponse(c *fiber.Ctx, errors interface{}) error {
-	return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+	return c.Status(fiber.StatusUnprocessableEntity).JSON(fiber.Map{
 		"status":  "fail",
 		"message": "Validation failed",
 		"errors":  errors,
