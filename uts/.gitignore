@@ -1,0 +1,18 @@
+# Go binaries and build artifacts
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binary
+*.test
+
+# Go coverage output
+*.out
+
+# Environment file
+.env
+
+prompt/
+konteks/
