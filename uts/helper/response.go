@@ -8,7 +8,7 @@ import (
 // Parameter 'data' bersifat opsional. Jika tidak ada data yang ingin dikembalikan, oper nil.
 func SuccessResponse(c *fiber.Ctx, statusCode int, message string, data interface{}) error {
 	response := fiber.Map{
-		"status":  "success",
+		"success": true,
 		"message": message,
 	}
 	
@@ -23,17 +23,17 @@ func SuccessResponse(c *fiber.Ctx, statusCode int, message string, data interfac
 // Contoh: Data tidak ditemukan, Kredensial salah, Internal Server Error.
 func ErrorResponse(c *fiber.Ctx, statusCode int, message string) error {
 	return c.Status(statusCode).JSON(fiber.Map{
-		"status":  "error",
+		"success": false,
 		"message": message,
 	})
 }
 
 // ValidationErrorResponse khusus digunakan ketika request payload (JSON input) gagal tervalidasi.
-// Biasa mengembalikan status 400 Bad Request beserta daftar error detailnya.
+// Biasa mengembalikan status 400 Bad Request atau 422 Unprocessable Entity beserta daftar error detailnya.
 func ValidationErrorResponse(c *fiber.Ctx, errors interface{}) error {
 	return c.Status(fiber.StatusUnprocessableEntity).JSON(fiber.Map{
-		"status":  "fail",
-		"message": "Validation failed",
+		"success": false,
+		"message": "Validasi gagal",
 		"errors":  errors,
 	})
 }

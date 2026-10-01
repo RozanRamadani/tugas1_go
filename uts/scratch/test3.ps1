@@ -48,9 +48,9 @@ function Send-Req {
     }
 }
 
-Send-Req -Name "5. Valid Enrollment" -Uri "http://localhost:3000/api/v1/enrollments" -Token $mhsToken -Body '{"course_id": 1, "tahun_akademik": "2026/2027-Ganjil"}'
-Send-Req -Name "6. Tanpa Auth (No Token)" -Uri "http://localhost:3000/api/v1/enrollments" -Token "" -Body '{"course_id": 1, "tahun_akademik": "2026/2027-Ganjil"}'
-Send-Req -Name "7. Menggunakan Akun Admin (Role Check)" -Uri "http://localhost:3000/api/v1/enrollments" -Token $adminToken -Body '{"course_id": 2, "tahun_akademik": "2026/2027-Ganjil"}'
-Send-Req -Name "8. Duplicate Enrollment" -Uri "http://localhost:3000/api/v1/enrollments" -Token $mhsToken -Body '{"course_id": 1, "tahun_akademik": "2026/2027-Ganjil"}'
-Send-Req -Name "9. Invalid Format Tahun Akademik" -Uri "http://localhost:3000/api/v1/enrollments" -Token $mhsToken -Body '{"course_id": 2, "tahun_akademik": "2026-Ganjil"}'
+Send-Req -Name "5. Valid Enrollment" -Uri "http://localhost:3000/api/v1/enrollments" -Token $mhsToken -Body '{"course_id": 4, "tahun_akademik": "2026/2027-Ganjil"}'
+Send-Req -Name "6. Tanpa Auth (No Token)" -Uri "http://localhost:3000/api/v1/enrollments" -Token "" -Body '{"course_id": 4, "tahun_akademik": "2026/2027-Ganjil"}'
+Send-Req -Name "7. Menggunakan Akun Admin (Role Check)" -Uri "http://localhost:3000/api/v1/enrollments" -Token $adminToken -Body '{"course_id": 4, "tahun_akademik": "2026/2027-Ganjil"}'
+Send-Req -Name "8. Duplicate Enrollment" -Uri "http://localhost:3000/api/v1/enrollments" -Token $mhsToken -Body '{"course_id": 4, "tahun_akademik": "2026/2027-Ganjil"}'
+Send-Req -Name "9. Invalid Format Tahun Akademik" -Uri "http://localhost:3000/api/v1/enrollments" -Token $mhsToken -Body '{"course_id": 4, "tahun_akademik": "2026-Ganjil"}'
 Send-Req -Name "10. Course Not Found" -Uri "http://localhost:3000/api/v1/enrollments" -Token $mhsToken -Body '{"course_id": 999, "tahun_akademik": "2026/2027-Ganjil"}'
