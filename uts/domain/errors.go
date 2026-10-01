@@ -1,6 +1,9 @@
 package domain
 
-import "errors"
+import (
+	"errors"
+	"fmt"
+)
 
 // Kumpulan Domain/Application Errors untuk fitur Enrollment (KRS)
 // Error ini murni merupakan aturan bisnis aplikasi dan tidak bergantung pada library HTTP/Fiber.
@@ -12,3 +15,15 @@ var (
 	ErrCourseFull          = errors.New("kuota mata kuliah sudah penuh")
 	ErrSKSLimitExceeded    = errors.New("total SKS melebihi batas maksimal berdasarkan IPK")
 )
+
+type SKSLimitError struct {
+	RemainingSKS int
+}
+
+func (e *SKSLimitError) Error() string {
+	return fmt.Sprintf("total SKS melebihi batas maksimal, sisa SKS Anda: %d SKS", e.RemainingSKS)
+}
+
+func (e *SKSLimitError) Unwrap() error {
+	return ErrSKSLimitExceeded
+}

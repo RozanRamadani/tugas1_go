@@ -101,7 +101,11 @@ func (s *enrollmentService) Enroll(userID uint, req domain.EnrollmentRequest) er
 	newTotalSKS := currentSKS + course.Sks
 	if newTotalSKS > maxSKS {
 		tx.Rollback()
-		return domain.ErrSKSLimitExceeded
+		remainingSKS := maxSKS - currentSKS
+		if remainingSKS < 0 {
+			remainingSKS = 0
+		}
+		return &domain.SKSLimitError{RemainingSKS: remainingSKS}
 	}
 
 	// 7. Create enrollment

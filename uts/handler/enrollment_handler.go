@@ -64,6 +64,10 @@ func (h *EnrollmentHandler) Create(c *fiber.Ctx) error {
 			return helper.ErrorResponse(c, fiber.StatusConflict, err.Error())
 		}
 		if errors.Is(err, domain.ErrCourseFull) || errors.Is(err, domain.ErrSKSLimitExceeded) {
+			var sksErr *domain.SKSLimitError
+			if errors.As(err, &sksErr) {
+				return helper.ErrorResponse(c, fiber.StatusUnprocessableEntity, sksErr.Error())
+			}
 			return helper.ErrorResponse(c, fiber.StatusUnprocessableEntity, err.Error())
 		}
 		
