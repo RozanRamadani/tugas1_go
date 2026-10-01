@@ -69,6 +69,8 @@ func main() {
 	studentGroup.Get("/:id", studentHandler.GetByID)
 	// 10D - PUT /api/v1/students/:id
 	studentGroup.Put("/:id", studentHandler.Update)
+	// 10E - DELETE /api/v1/students/:id
+	studentGroup.Delete("/:id", studentHandler.Delete)
 
 	// 5. Jalankan server
 	port := config.GetEnv("APP_PORT", "3000")

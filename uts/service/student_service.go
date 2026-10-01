@@ -12,6 +12,7 @@ type StudentService interface {
 	GetStudentByID(id uint) (*domain.Student, error)
 	CreateStudent(student *domain.Student, rawPassword string) error
 	UpdateStudent(id uint, updatedData *domain.Student) error
+	DeleteStudent(id uint) error
 }
 
 type studentService struct {
@@ -43,19 +44,27 @@ func (s *studentService) CreateStudent(student *domain.Student, rawPassword stri
 }
 
 func (s *studentService) UpdateStudent(id uint, updatedData *domain.Student) error {
-	// 1. Cari data mahasiswa yang lama
 	student, err := s.studentRepo.FindByID(id)
 	if err != nil {
-		return err // Mengembalikan error jika tidak ditemukan
+		return err
 	}
 
-	// 2. Timpa data lama dengan data baru
 	student.NIM = updatedData.NIM
 	student.Nama = updatedData.Nama
 	student.Prodi = updatedData.Prodi
 	student.Angkatan = updatedData.Angkatan
 	student.IpkTerakhir = updatedData.IpkTerakhir
 
-	// 3. Simpan perubahan ke database
 	return s.studentRepo.Update(student)
+}
+
+func (s *studentService) DeleteStudent(id uint) error {
+	// 1. Cari data mahasiswa yang lama
+	student, err := s.studentRepo.FindByID(id)
+	if err != nil {
+		return err // Mengembalikan error jika tidak ditemukan
+	}
+
+	// 2. Hapus data (Soft Delete)
+	return s.studentRepo.Delete(student)
 }

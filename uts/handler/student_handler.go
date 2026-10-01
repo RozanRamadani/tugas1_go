@@ -137,3 +137,18 @@ func (h *StudentHandler) Update(c *fiber.Ctx) error {
 
 	return helper.SuccessResponse(c, fiber.StatusOK, "Berhasil mengupdate data mahasiswa", nil)
 }
+
+// Delete menangani rute DELETE /api/v1/students/:id
+func (h *StudentHandler) Delete(c *fiber.Ctx) error {
+	id, err := c.ParamsInt("id")
+	if err != nil {
+		return helper.ErrorResponse(c, fiber.StatusBadRequest, "ID tidak valid")
+	}
+
+	err = h.studentService.DeleteStudent(uint(id))
+	if err != nil {
+		return helper.ErrorResponse(c, fiber.StatusNotFound, "Gagal menghapus: Data mahasiswa tidak ditemukan")
+	}
+
+	return helper.SuccessResponse(c, fiber.StatusOK, "Berhasil menghapus data mahasiswa (Soft Delete)", nil)
+}
