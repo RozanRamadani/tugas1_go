@@ -28,6 +28,11 @@ func main() {
 	studentService := service.NewStudentService(studentRepo)
 	studentHandler := handler.NewStudentHandler(studentService)
 
+	// -- Course --
+	courseRepo := repository.NewCourseRepository(config.DB)
+	courseService := service.NewCourseService(courseRepo)
+	courseHandler := handler.NewCourseHandler(courseService)
+
 	// 3. Setup Framework Fiber
 	app := fiber.New()
 
@@ -57,7 +62,6 @@ func main() {
 
 	// Rute Student (Hanya Admin)
 	studentGroup := api.Group("/students")
-	// Pasang perlindungan JWT dan batasan peran
 	studentGroup.Use(middleware.Protected())
 	studentGroup.Use(middleware.RequireRole(string(domain.RoleAdmin)))
 	
@@ -71,6 +75,14 @@ func main() {
 	studentGroup.Put("/:id", studentHandler.Update)
 	// 10E - DELETE /api/v1/students/:id
 	studentGroup.Delete("/:id", studentHandler.Delete)
+
+	// Rute Course (Bisa diakses Admin maupun Mahasiswa)
+	courseGroup := api.Group("/courses")
+	courseGroup.Use(middleware.Protected())
+	courseGroup.Use(middleware.RequireRole(string(domain.RoleAdmin), string(domain.RoleMahasiswa)))
+	
+	// 11 - GET /api/v1/courses
+	courseGroup.Get("/", courseHandler.GetAll)
 
 	// 5. Jalankan server
 	port := config.GetEnv("APP_PORT", "3000")

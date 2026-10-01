@@ -50,6 +50,19 @@ type Course struct {
 	UpdatedAt time.Time
 }
 
+// CourseResponse adalah struktur khusus (DTO) untuk mengembalikan response JSON
+// yang memuat kalkulasi sisa_kuota dan terisi dari tabel enrollments.
+type CourseResponse struct {
+	ID        uint   `json:"id"`
+	KodeMk    string `json:"kode_mk"`
+	NamaMk    string `json:"nama_mk"`
+	Sks       int    `json:"sks"`
+	Semester  int    `json:"semester"`
+	Kuota     int    `json:"kuota"`
+	Terisi    int    `json:"terisi"`
+	SisaKuota int    `json:"sisa_kuota"`
+}
+
 // Enrollment model sesuai PDF (id, student_id, course_id, tahun_akademik, created_at)
 type Enrollment struct {
 	ID            uint      `gorm:"primaryKey"`
