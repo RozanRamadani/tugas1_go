@@ -3,6 +3,7 @@ package handler
 import (
 	"fmt"
 	"regexp"
+	"time"
 
 	"siakad-mini/domain"
 	"siakad-mini/helper"
@@ -36,12 +37,11 @@ func (h *StudentHandler) GetAll(c *fiber.Ctx) error {
 
 type CreateStudentRequest struct {
 	Email       string  `json:"email" validate:"required,email"`
-	Password    string  `json:"password" validate:"required,min=8"`
-	NIM         string  `json:"nim" validate:"required"`
+	NIM         string  `json:"nim" validate:"required,len=12,numeric"`
 	Nama        string  `json:"nama" validate:"required"`
 	Prodi       string  `json:"prodi" validate:"required"`
 	Angkatan    int     `json:"angkatan" validate:"required"`
-	IpkTerakhir float64 `json:"ipk_terakhir"`
+	IpkTerakhir float64 `json:"ipk_terakhir" validate:"omitempty,min=0,max=4"`
 }
 
 // Create menangani rute POST /api/v1/students
@@ -59,6 +59,12 @@ func (h *StudentHandler) Create(c *fiber.Ctx) error {
 		return helper.ValidationErrorResponse(c, errorMessages)
 	}
 
+	// Validasi angkatan (tidak boleh melebihi tahun berjalan)
+	currentYear := time.Now().Year()
+	if req.Angkatan > currentYear {
+		return helper.ValidationErrorResponse(c, []string{"Field 'Angkatan' tidak boleh melebihi tahun berjalan"})
+	}
+
 	// Mapping Request DTO ke Domain Model
 	student := domain.Student{
 		NIM:         req.NIM,
@@ -72,9 +78,10 @@ func (h *StudentHandler) Create(c *fiber.Ctx) error {
 		},
 	}
 
-	err := h.studentService.CreateStudent(&student, req.Password)
+	// Password awal tetap menggunakan NIM
+	err := h.studentService.CreateStudent(&student, req.NIM)
 	if err != nil {
-		return helper.ErrorResponse(c, fiber.StatusInternalServerError, "Gagal membuat data mahasiswa, periksa apakah email/NIM sudah terdaftar")
+		return helper.ErrorResponse(c, fiber.StatusUnprocessableEntity, "Gagal membuat data mahasiswa, periksa apakah email/NIM sudah terdaftar")
 	}
 
 	return helper.SuccessResponse(c, fiber.StatusCreated, "Berhasil membuat data mahasiswa", nil)
@@ -128,7 +135,7 @@ type UpdateStudentRequest struct {
 	Nama        string  `json:"nama" validate:"required"`
 	Prodi       string  `json:"prodi" validate:"required"`
 	Angkatan    int     `json:"angkatan" validate:"required"`
-	IpkTerakhir float64 `json:"ipk_terakhir"`
+	IpkTerakhir float64 `json:"ipk_terakhir" validate:"omitempty,min=0,max=4"`
 }
 
 // Update menangani rute PUT /api/v1/students/:id
@@ -149,6 +156,12 @@ func (h *StudentHandler) Update(c *fiber.Ctx) error {
 			errorMessages = append(errorMessages, fmt.Sprintf("Field '%s' tidak valid berdasarkan aturan '%s'", err.Field(), err.Tag()))
 		}
 		return helper.ValidationErrorResponse(c, errorMessages)
+	}
+
+	// Validasi angkatan
+	currentYear := time.Now().Year()
+	if req.Angkatan > currentYear {
+		return helper.ValidationErrorResponse(c, []string{"Field 'Angkatan' tidak boleh melebihi tahun berjalan"})
 	}
 
 	updatedData := domain.Student{
