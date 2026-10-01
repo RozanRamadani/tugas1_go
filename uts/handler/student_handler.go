@@ -93,3 +93,47 @@ func (h *StudentHandler) GetByID(c *fiber.Ctx) error {
 
 	return helper.SuccessResponse(c, fiber.StatusOK, "Berhasil mengambil data mahasiswa", student)
 }
+
+type UpdateStudentRequest struct {
+	NIM         string  `json:"nim" validate:"required"`
+	Nama        string  `json:"nama" validate:"required"`
+	Prodi       string  `json:"prodi" validate:"required"`
+	Angkatan    int     `json:"angkatan" validate:"required"`
+	IpkTerakhir float64 `json:"ipk_terakhir"`
+}
+
+// Update menangani rute PUT /api/v1/students/:id
+func (h *StudentHandler) Update(c *fiber.Ctx) error {
+	id, err := c.ParamsInt("id")
+	if err != nil {
+		return helper.ErrorResponse(c, fiber.StatusBadRequest, "ID tidak valid")
+	}
+
+	var req UpdateStudentRequest
+	if err := c.BodyParser(&req); err != nil {
+		return helper.ErrorResponse(c, fiber.StatusBadRequest, "Format request tidak valid")
+	}
+
+	if err := h.validator.Struct(req); err != nil {
+		var errorMessages []string
+		for _, err := range err.(validator.ValidationErrors) {
+			errorMessages = append(errorMessages, fmt.Sprintf("Field '%s' tidak valid berdasarkan aturan '%s'", err.Field(), err.Tag()))
+		}
+		return helper.ValidationErrorResponse(c, errorMessages)
+	}
+
+	updatedData := domain.Student{
+		NIM:         req.NIM,
+		Nama:        req.Nama,
+		Prodi:       req.Prodi,
+		Angkatan:    req.Angkatan,
+		IpkTerakhir: req.IpkTerakhir,
+	}
+
+	err = h.studentService.UpdateStudent(uint(id), &updatedData)
+	if err != nil {
+		return helper.ErrorResponse(c, fiber.StatusNotFound, "Gagal mengupdate: Data mahasiswa tidak ditemukan")
+	}
+
+	return helper.SuccessResponse(c, fiber.StatusOK, "Berhasil mengupdate data mahasiswa", nil)
+}

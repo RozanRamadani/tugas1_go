@@ -67,6 +67,8 @@ func main() {
 	studentGroup.Post("/", studentHandler.Create)
 	// 10C - GET /api/v1/students/:id
 	studentGroup.Get("/:id", studentHandler.GetByID)
+	// 10D - PUT /api/v1/students/:id
+	studentGroup.Put("/:id", studentHandler.Update)
 
 	// 5. Jalankan server
 	port := config.GetEnv("APP_PORT", "3000")
