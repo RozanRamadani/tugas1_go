@@ -19,6 +19,10 @@ CREATE TABLE IF NOT EXISTS users (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+-- Tambahkan column role jika tabel users sudah ada dari praktikum sebelumnya
+ALTER TABLE users
+ADD COLUMN IF NOT EXISTS role VARCHAR(20) NOT NULL DEFAULT 'user';
+
 -- Role dibatasi agar tidak sembarang nilai masuk.
 ALTER TABLE users
 DROP CONSTRAINT IF EXISTS users_role_check;

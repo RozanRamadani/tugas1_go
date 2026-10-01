@@ -393,55 +393,47 @@ func (h *StudentHandler) Patch(c *fiber.Ctx) error {
 // ============================================================
 
 func (h *StudentHandler) Delete(c *fiber.Ctx) error {
-	id := c.Params("id")
+    id := c.Params("id")
 
-	if _, err := strconv.Atoi(id); err != nil {
-		return fail(
-			c,
-			fiber.StatusBadRequest,
-			"id student tidak valid",
-		)
-	}
+    currentUser, userExists := helper.CurrentUser(c)
 
-	currentUser, userExists := helper.CurrentUser(c)
+    if !userExists {
+        return fail(
+            c,
+            fiber.StatusUnauthorized,
+            "unauthorized",
+        )
+    }
 
-	if !userExists {
-		return fail(
-			c,
-			fiber.StatusUnauthorized,
-			"unauthorized",
-		)
-	}
+    err := h.service.Delete(
+        c.Context(),
+        id,
+        currentUser,
+    )
 
-	err := h.service.Delete(
-		c.Context(),
-		id,
-		currentUser,
-	)
+    if err != nil {
+        if errors.Is(err, service.ErrForbidden) {
+            return fail(
+                c,
+                fiber.StatusForbidden,
+                "forbidden",
+            )
+        }
 
-	if err != nil {
-		if errors.Is(err, service.ErrForbidden) {
-			return fail(
-				c,
-				fiber.StatusForbidden,
-				"forbidden",
-			)
-		}
+        if errors.Is(err, repository.ErrNotFound) {
+            return fail(
+                c,
+                fiber.StatusNotFound,
+                "student tidak ditemukan",
+            )
+        }
 
-		if errors.Is(err, repository.ErrNotFound) {
-			return fail(
-				c,
-				fiber.StatusNotFound,
-				"student tidak ditemukan",
-			)
-		}
+        return fail(
+            c,
+            fiber.StatusInternalServerError,
+            "gagal menghapus student",
+        )
+    }
 
-		return fail(
-			c,
-			fiber.StatusInternalServerError,
-			"gagal menghapus student",
-		)
-	}
-
-	return noContent(c)
+    return noContent(c)
 }

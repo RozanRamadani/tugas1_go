@@ -39,6 +39,13 @@ func (h *AuthHandler) Register(c *fiber.Ctx) error {
 		)
 	}
 
+	if errs := service.ValidateRegister(req); len(errs) > 0 {
+		return c.Status(fiber.StatusUnprocessableEntity).JSON(fiber.Map{
+			"success": false,
+			"errors":  errs,
+		})
+	}
+
 	user, err := h.authService.Register(
 		c.Context(),
 		req,
