@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"siakad-mini/config"
+	"siakad-mini/domain"
 	"siakad-mini/repository"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -16,11 +17,12 @@ type AuthService interface {
 }
 
 type authService struct {
-	userRepo repository.UserRepository
+	userRepo    repository.UserRepository
+	studentRepo repository.StudentRepository
 }
 
-func NewAuthService(userRepo repository.UserRepository) AuthService {
-	return &authService{userRepo}
+func NewAuthService(userRepo repository.UserRepository, studentRepo repository.StudentRepository) AuthService {
+	return &authService{userRepo, studentRepo}
 }
 
 func (s *authService) Login(email, password string) (string, error) {
@@ -36,7 +38,15 @@ func (s *authService) Login(email, password string) (string, error) {
 		return "", errors.New("invalid credentials")
 	}
 
-	// 3. Jika password cocok, buat JWT Token
+	// 2.5 Jika role mahasiswa, periksa apakah data student aktif (tidak di-soft-delete)
+	if user.Role == domain.RoleMahasiswa {
+		_, err := s.studentRepo.FindByUserID(user.ID)
+		if err != nil {
+			return "", errors.New("invalid credentials")
+		}
+	}
+
+	// 3. Jika password cocok dan akun aktif, buat JWT Token
 	claims := jwt.MapClaims{
 		"user_id": user.ID,
 		"role":    user.Role,

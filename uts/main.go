@@ -18,15 +18,15 @@ func main() {
 	config.ConnectDB()
 
 	// 2. Setup Dependency Injection (DI)
-	// -- Auth --
-	userRepo := repository.NewUserRepository(config.DB)
-	authService := service.NewAuthService(userRepo)
-	authHandler := handler.NewAuthHandler(authService)
-
 	// -- Student --
 	studentRepo := repository.NewStudentRepository(config.DB)
 	studentService := service.NewStudentService(studentRepo)
 	studentHandler := handler.NewStudentHandler(studentService)
+
+	// -- Auth --
+	userRepo := repository.NewUserRepository(config.DB)
+	authService := service.NewAuthService(userRepo, studentRepo)
+	authHandler := handler.NewAuthHandler(authService)
 
 	// -- Course --
 	courseRepo := repository.NewCourseRepository(config.DB)
