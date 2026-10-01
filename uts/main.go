@@ -55,13 +55,16 @@ func main() {
 	authGroup := api.Group("/auth")
 	authGroup.Post("/login", authHandler.Login)
 
-	// Rute Student (Hanya Admin untuk GET All)
+	// Rute Student (Hanya Admin)
 	studentGroup := api.Group("/students")
 	// Pasang perlindungan JWT dan batasan peran
 	studentGroup.Use(middleware.Protected())
 	studentGroup.Use(middleware.RequireRole(string(domain.RoleAdmin)))
+	
 	// 10A - GET /api/v1/students
 	studentGroup.Get("/", studentHandler.GetAll)
+	// 10B - POST /api/v1/students
+	studentGroup.Post("/", studentHandler.Create)
 
 	// 5. Jalankan server
 	port := config.GetEnv("APP_PORT", "3000")
