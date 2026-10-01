@@ -33,6 +33,10 @@ func main() {
 	courseService := service.NewCourseService(courseRepo)
 	courseHandler := handler.NewCourseHandler(courseService)
 
+	// -- Enrollment --
+	enrollmentService := service.NewEnrollmentService(config.DB)
+	enrollmentHandler := handler.NewEnrollmentHandler(enrollmentService)
+
 	// 3. Setup Framework Fiber
 	app := fiber.New()
 
@@ -83,6 +87,14 @@ func main() {
 	
 	// 11 - GET /api/v1/courses
 	courseGroup.Get("/", courseHandler.GetAll)
+
+	// Rute Enrollment (Hanya Mahasiswa)
+	enrollmentGroup := api.Group("/enrollments")
+	enrollmentGroup.Use(middleware.Protected())
+	enrollmentGroup.Use(middleware.RequireRole(string(domain.RoleMahasiswa)))
+	
+	// 12 - POST /api/v1/enrollments
+	enrollmentGroup.Post("/", enrollmentHandler.Create)
 
 	// 5. Jalankan server
 	port := config.GetEnv("APP_PORT", "3000")
