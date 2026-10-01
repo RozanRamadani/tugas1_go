@@ -14,6 +14,8 @@ var (
 	ErrEnrollmentDuplicate = errors.New("mahasiswa sudah mengambil mata kuliah ini pada tahun akademik yang sama")
 	ErrCourseFull          = errors.New("kuota mata kuliah sudah penuh")
 	ErrSKSLimitExceeded    = errors.New("total SKS melebihi batas maksimal berdasarkan IPK")
+	ErrEnrollmentNotFound  = errors.New("data KRS tidak ditemukan")
+	ErrEnrollmentForbidden = errors.New("anda tidak memiliki akses untuk membatalkan KRS ini")
 )
 
 type SKSLimitError struct {

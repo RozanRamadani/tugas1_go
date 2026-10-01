@@ -9,6 +9,7 @@ import (
 
 type EnrollmentService interface {
 	Enroll(userID uint, req domain.EnrollmentRequest) error
+	CancelEnrollment(userID uint, enrollmentID uint) error
 }
 
 type enrollmentService struct {
@@ -122,6 +123,37 @@ func (s *enrollmentService) Enroll(userID uint, req domain.EnrollmentRequest) er
 
 	// 8. Commit
 	if err := tx.Commit().Error; err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *enrollmentService) CancelEnrollment(userID uint, enrollmentID uint) error {
+	studentRepo := repository.NewStudentRepository(s.db)
+	enrollmentRepo := repository.NewEnrollmentRepository(s.db)
+
+	student, err := studentRepo.FindByUserID(userID)
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return domain.ErrStudentNotFound
+		}
+		return err
+	}
+
+	enrollment, err := enrollmentRepo.FindByID(enrollmentID)
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return domain.ErrEnrollmentNotFound
+		}
+		return err
+	}
+
+	if enrollment.StudentID != student.ID {
+		return domain.ErrEnrollmentForbidden
+	}
+
+	if err := enrollmentRepo.Delete(enrollmentID); err != nil {
 		return err
 	}
 

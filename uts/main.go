@@ -43,7 +43,7 @@ func main() {
 	// Endpoint /health untuk mengecek status server dan database
 	app.Get("/health", func(c *fiber.Ctx) error {
 		dbStatus := "down"
-		
+
 		if sqlDB, err := config.DB.DB(); err == nil {
 			if err := sqlDB.Ping(); err == nil {
 				dbStatus = "up"
@@ -59,7 +59,7 @@ func main() {
 
 	// 4. Setup Routing API
 	api := app.Group("/api/v1")
-	
+
 	// Rute Publik (Auth)
 	authGroup := api.Group("/auth")
 	authGroup.Post("/login", authHandler.Login)
@@ -68,7 +68,7 @@ func main() {
 	studentGroup := api.Group("/students")
 	studentGroup.Use(middleware.Protected())
 	studentGroup.Use(middleware.RequireRole(string(domain.RoleAdmin)))
-	
+
 	// 10A - GET /api/v1/students
 	studentGroup.Get("/", studentHandler.GetAll)
 	// 10B - POST /api/v1/students
@@ -84,7 +84,7 @@ func main() {
 	courseGroup := api.Group("/courses")
 	courseGroup.Use(middleware.Protected())
 	courseGroup.Use(middleware.RequireRole(string(domain.RoleAdmin), string(domain.RoleMahasiswa)))
-	
+
 	// 11 - GET /api/v1/courses
 	courseGroup.Get("/", courseHandler.GetAll)
 
@@ -92,9 +92,12 @@ func main() {
 	enrollmentGroup := api.Group("/enrollments")
 	enrollmentGroup.Use(middleware.Protected())
 	enrollmentGroup.Use(middleware.RequireRole(string(domain.RoleMahasiswa)))
-	
+
 	// 12 - POST /api/v1/enrollments
 	enrollmentGroup.Post("/", enrollmentHandler.Create)
+
+	// 13 - DELETE /api/v1/enrollments/:id
+	enrollmentGroup.Delete("/:id", enrollmentHandler.Delete)
 
 	// 5. Jalankan server
 	port := config.GetEnv("APP_PORT", "3000")

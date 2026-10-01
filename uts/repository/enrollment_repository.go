@@ -10,6 +10,8 @@ type EnrollmentRepository interface {
 	Exists(studentID uint, courseID uint, tahunAkademik string) (bool, error)
 	GetTotalSKS(studentID uint, tahunAkademik string) (int, error)
 	Create(enrollment *domain.Enrollment) error
+	FindByID(id uint) (*domain.Enrollment, error)
+	Delete(id uint) error
 }
 
 type enrollmentRepository struct {
@@ -47,4 +49,17 @@ func (r *enrollmentRepository) GetTotalSKS(studentID uint, tahunAkademik string)
 
 func (r *enrollmentRepository) Create(enrollment *domain.Enrollment) error {
 	return r.db.Create(enrollment).Error
+}
+
+func (r *enrollmentRepository) FindByID(id uint) (*domain.Enrollment, error) {
+	var enrollment domain.Enrollment
+	err := r.db.First(&enrollment, id).Error
+	if err != nil {
+		return nil, err
+	}
+	return &enrollment, nil
+}
+
+func (r *enrollmentRepository) Delete(id uint) error {
+	return r.db.Delete(&domain.Enrollment{}, id).Error
 }

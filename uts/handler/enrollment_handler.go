@@ -70,10 +70,44 @@ func (h *EnrollmentHandler) Create(c *fiber.Ctx) error {
 			}
 			return helper.ErrorResponse(c, fiber.StatusUnprocessableEntity, err.Error())
 		}
-		
+
 		// Fallback untuk error tidak terduga / error database aseli
 		return helper.ErrorResponse(c, fiber.StatusInternalServerError, "Terjadi kesalahan internal pada server")
 	}
 
 	return helper.SuccessResponse(c, fiber.StatusCreated, "Berhasil membuat KRS", nil)
+}
+
+// Delete menangani rute DELETE /api/v1/enrollments/:id
+func (h *EnrollmentHandler) Delete(c *fiber.Ctx) error {
+	// Ambil user_id dari JWT Locals
+	userIDFloat, ok := c.Locals("user_id").(float64)
+	if !ok {
+		return helper.ErrorResponse(c, fiber.StatusUnauthorized, "Token JWT tidak valid atau user_id tidak ditemukan")
+	}
+	userID := uint(userIDFloat)
+
+	// Parsing parameter ID
+	enrollmentID, err := c.ParamsInt("id")
+	if err != nil {
+		return helper.ValidationErrorResponse(c, []string{"ID KRS tidak valid"})
+	}
+
+	// Panggil Service
+	err = h.enrollmentService.CancelEnrollment(userID, uint(enrollmentID))
+	if err != nil {
+		if errors.Is(err, domain.ErrStudentNotFound) {
+			return helper.ErrorResponse(c, fiber.StatusNotFound, err.Error())
+		}
+		if errors.Is(err, domain.ErrEnrollmentNotFound) {
+			return helper.ErrorResponse(c, fiber.StatusNotFound, err.Error())
+		}
+		if errors.Is(err, domain.ErrEnrollmentForbidden) {
+			return helper.ErrorResponse(c, fiber.StatusForbidden, err.Error())
+		}
+		// Fallback untuk error tidak terduga
+		return helper.ErrorResponse(c, fiber.StatusInternalServerError, "Terjadi kesalahan internal pada server")
+	}
+
+	return c.SendStatus(fiber.StatusNoContent)
 }
