@@ -9,6 +9,7 @@ import (
 
 type StudentService interface {
 	GetAllStudents() ([]domain.Student, error)
+	GetStudentByID(id uint) (*domain.Student, error)
 	CreateStudent(student *domain.Student, rawPassword string) error
 }
 
@@ -24,17 +25,18 @@ func (s *studentService) GetAllStudents() ([]domain.Student, error) {
 	return s.studentRepo.FindAll()
 }
 
+func (s *studentService) GetStudentByID(id uint) (*domain.Student, error) {
+	return s.studentRepo.FindByID(id)
+}
+
 func (s *studentService) CreateStudent(student *domain.Student, rawPassword string) error {
-	// 1. Hash password yang diberikan
 	bytes, err := bcrypt.GenerateFromPassword([]byte(rawPassword), bcrypt.DefaultCost)
 	if err != nil {
 		return err
 	}
 
-	// 2. Set field User yang akan di-insert berbarengan dengan Student
 	student.User.Password = string(bytes)
-	student.User.Role = domain.RoleMahasiswa // Pastikan selalu menjadi role mahasiswa
+	student.User.Role = domain.RoleMahasiswa
 
-	// 3. Panggil repository untuk menyimpan
 	return s.studentRepo.Create(student)
 }

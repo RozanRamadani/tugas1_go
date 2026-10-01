@@ -78,3 +78,18 @@ func (h *StudentHandler) Create(c *fiber.Ctx) error {
 
 	return helper.SuccessResponse(c, fiber.StatusCreated, "Berhasil membuat data mahasiswa", nil)
 }
+
+// GetByID menangani rute GET /api/v1/students/:id
+func (h *StudentHandler) GetByID(c *fiber.Ctx) error {
+	id, err := c.ParamsInt("id")
+	if err != nil {
+		return helper.ErrorResponse(c, fiber.StatusBadRequest, "ID tidak valid")
+	}
+
+	student, err := h.studentService.GetStudentByID(uint(id))
+	if err != nil {
+		return helper.ErrorResponse(c, fiber.StatusNotFound, "Data mahasiswa tidak ditemukan")
+	}
+
+	return helper.SuccessResponse(c, fiber.StatusOK, "Berhasil mengambil data mahasiswa", student)
+}
