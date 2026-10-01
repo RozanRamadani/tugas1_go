@@ -44,14 +44,14 @@ func main() {
 	db.Model(&domain.Student{}).Count(&studentCount)
 	if studentCount == 0 {
 		defaultPass := hashPassword("mhs12345") // minimal 8 karakter sesuai requirement UTS
-		
+
 		var users []domain.User
 		var students []domain.Student
 		prodiList := []string{"Teknik Informatika", "Sistem Informasi", "Ilmu Komputer"}
 
 		for i := 1; i <= 20; i++ {
 			email := fmt.Sprintf("mhs%02d@student.com", i)
-			
+
 			user := domain.User{
 				Email:    email,
 				Password: defaultPass,
@@ -74,7 +74,7 @@ func main() {
 				NIM:         fmt.Sprintf("112233%02d", i+1),
 				Nama:        namaRealistis[i],
 				Prodi:       prodiList[i%3],
-				Angkatan:    2022 + (i % 2), // 2022 atau 2023
+				Angkatan:    2022 + (i % 2),               // 2022 atau 2023
 				IpkTerakhir: 3.0 + (rand.Float64() * 1.0), // IPK antara 3.0 - 4.0
 			}
 			students = append(students, student)

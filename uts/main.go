@@ -64,21 +64,20 @@ func main() {
 	authGroup := api.Group("/auth")
 	authGroup.Post("/login", authHandler.Login)
 
-	// Rute Student (Hanya Admin)
+	// Rute Student
 	studentGroup := api.Group("/students")
 	studentGroup.Use(middleware.Protected())
-	studentGroup.Use(middleware.RequireRole(string(domain.RoleAdmin)))
 
 	// 10A - GET /api/v1/students
-	studentGroup.Get("/", studentHandler.GetAll)
+	studentGroup.Get("/", middleware.RequireRole(string(domain.RoleAdmin)), studentHandler.GetAll)
 	// 10B - POST /api/v1/students
-	studentGroup.Post("/", studentHandler.Create)
-	// 10C - GET /api/v1/students/:id
-	studentGroup.Get("/:id", studentHandler.GetByID)
+	studentGroup.Post("/", middleware.RequireRole(string(domain.RoleAdmin)), studentHandler.Create)
+	// 10C - GET /api/v1/students/:id (Admin & Mahasiswa)
+	studentGroup.Get("/:id", middleware.RequireRole(string(domain.RoleAdmin), string(domain.RoleMahasiswa)), studentHandler.GetByID)
 	// 10D - PUT /api/v1/students/:id
-	studentGroup.Put("/:id", studentHandler.Update)
+	studentGroup.Put("/:id", middleware.RequireRole(string(domain.RoleAdmin)), studentHandler.Update)
 	// 10E - DELETE /api/v1/students/:id
-	studentGroup.Delete("/:id", studentHandler.Delete)
+	studentGroup.Delete("/:id", middleware.RequireRole(string(domain.RoleAdmin)), studentHandler.Delete)
 
 	// Rute Course (Bisa diakses Admin maupun Mahasiswa)
 	courseGroup := api.Group("/courses")

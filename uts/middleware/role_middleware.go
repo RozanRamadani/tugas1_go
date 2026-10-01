@@ -7,9 +7,9 @@ import (
 )
 
 // RequireRole adalah middleware otorisasi (Authorization) untuk membatasi akses endpoint.
-// Middleware ini WAJIB dijalankan SETELAH middleware Protected() karena ia bergantung 
+// Middleware ini WAJIB dijalankan SETELAH middleware Protected() karena ia bergantung
 // pada data 'role' yang disimpan di Fiber Locals oleh Protected().
-// 
+//
 // Penggunaan parameter variadic (...string) memungkinkan kita melempar lebih dari satu role,
 // misal: RequireRole("admin", "mahasiswa")
 func RequireRole(allowedRoles ...string) fiber.Handler {

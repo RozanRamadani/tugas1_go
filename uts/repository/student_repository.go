@@ -15,6 +15,7 @@ type StudentRepository interface {
 	Create(student *domain.Student) error
 	Update(student *domain.Student) error
 	Delete(student *domain.Student) error
+	GetEnrolledCourses(studentID uint, tahunAkademik string) ([]domain.Enrollment, error)
 }
 
 type studentRepository struct {
@@ -71,4 +72,16 @@ func (r *studentRepository) Update(student *domain.Student) error {
 
 func (r *studentRepository) Delete(student *domain.Student) error {
 	return r.db.Delete(student).Error
+}
+
+func (r *studentRepository) GetEnrolledCourses(studentID uint, tahunAkademik string) ([]domain.Enrollment, error) {
+	var enrollments []domain.Enrollment
+	query := r.db.Preload("Course").Where("student_id = ?", studentID)
+
+	if tahunAkademik != "" {
+		query = query.Where("tahun_akademik = ?", tahunAkademik)
+	}
+
+	err := query.Find(&enrollments).Error
+	return enrollments, err
 }

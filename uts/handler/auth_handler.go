@@ -26,7 +26,7 @@ func NewAuthHandler(authService service.AuthService) *AuthHandler {
 
 // LoginRequest merepresentasikan bentuk JSON yang diharapkan dari client
 type LoginRequest struct {
-	Email    string `json:"email" validate:"required,email"` // Wajib diisi dan format email
+	Email    string `json:"email" validate:"required,email"`    // Wajib diisi dan format email
 	Password string `json:"password" validate:"required,min=8"` // Wajib diisi dan minimal 8 karakter
 }
 

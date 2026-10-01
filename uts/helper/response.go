@@ -11,7 +11,7 @@ func SuccessResponse(c *fiber.Ctx, statusCode int, message string, data interfac
 		"success": true,
 		"message": message,
 	}
-	
+
 	if data != nil {
 		response["data"] = data
 	}

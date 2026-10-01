@@ -2,6 +2,7 @@ package handler
 
 import (
 	"fmt"
+	"regexp"
 
 	"siakad-mini/domain"
 	"siakad-mini/helper"
@@ -86,12 +87,40 @@ func (h *StudentHandler) GetByID(c *fiber.Ctx) error {
 		return helper.ErrorResponse(c, fiber.StatusBadRequest, "ID tidak valid")
 	}
 
+	// Otorisasi: Mahasiswa hanya boleh melihat profil sendiri
+	roleStr, okRole := c.Locals("role").(string)
+	jwtUserID, okUser := c.Locals("user_id").(float64)
+	if !okRole || !okUser {
+		return helper.ErrorResponse(c, fiber.StatusUnauthorized, "Token tidak valid")
+	}
+
+	// Cek apakah data mahasiswa ada
 	student, err := h.studentService.GetStudentByID(uint(id))
 	if err != nil {
 		return helper.ErrorResponse(c, fiber.StatusNotFound, "Data mahasiswa tidak ditemukan")
 	}
 
-	return helper.SuccessResponse(c, fiber.StatusOK, "Berhasil mengambil data mahasiswa", student)
+	// Jika role mahasiswa, userID JWT harus sama dengan userID milik Student
+	if roleStr == string(domain.RoleMahasiswa) && uint(jwtUserID) != student.UserID {
+		return helper.ErrorResponse(c, fiber.StatusForbidden, "Akses ditolak: Anda tidak memiliki izin untuk melihat profil mahasiswa lain")
+	}
+
+	// Filter tahun akademik (opsional)
+	tahunAkademik := c.Query("tahun_akademik")
+	if tahunAkademik != "" {
+		matched, _ := regexp.MatchString(`^\d{4}/\d{4}-(Ganjil|Genap)$`, tahunAkademik)
+		if !matched {
+			return helper.ValidationErrorResponse(c, []string{"Field 'tahun_akademik' harus berformat YYYY/YYYY-Ganjil atau YYYY/YYYY-Genap"})
+		}
+	}
+
+	// Ambil detail (lengkap dengan mata kuliah, total sks, batas sks)
+	detail, err := h.studentService.GetStudentDetail(uint(id), tahunAkademik)
+	if err != nil {
+		return helper.ErrorResponse(c, fiber.StatusInternalServerError, "Gagal merelasikan data mahasiswa")
+	}
+
+	return helper.SuccessResponse(c, fiber.StatusOK, "Berhasil mengambil data mahasiswa", detail)
 }
 
 type UpdateStudentRequest struct {
