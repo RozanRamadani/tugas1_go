@@ -12,7 +12,7 @@ type StudentService interface {
 	GetStudentByID(id uint) (*domain.Student, error)
 	GetStudentDetail(id uint, tahunAkademik string) (*domain.StudentDetailResponse, error)
 	CreateStudent(student *domain.Student, rawPassword string) error
-	UpdateStudent(id uint, updatedData *domain.Student) error
+	UpdateStudent(id uint, updatedData *domain.Student) (*domain.Student, error)
 	DeleteStudent(id uint) error
 }
 
@@ -96,19 +96,19 @@ func (s *studentService) CreateStudent(student *domain.Student, rawPassword stri
 	return s.studentRepo.Create(student)
 }
 
-func (s *studentService) UpdateStudent(id uint, updatedData *domain.Student) error {
+func (s *studentService) UpdateStudent(id uint, updatedData *domain.Student) (*domain.Student, error) {
 	student, err := s.studentRepo.FindByID(id)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	student.NIM = updatedData.NIM
 	student.Nama = updatedData.Nama
 	student.Prodi = updatedData.Prodi
 	student.Angkatan = updatedData.Angkatan
 	student.IpkTerakhir = updatedData.IpkTerakhir
 
-	return s.studentRepo.Update(student)
+	err = s.studentRepo.Update(student)
+	return student, err
 }
 
 func (s *studentService) DeleteStudent(id uint) error {

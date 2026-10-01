@@ -124,7 +124,7 @@ func (h *StudentHandler) GetByID(c *fiber.Ctx) error {
 }
 
 type UpdateStudentRequest struct {
-	NIM         string  `json:"nim" validate:"required"`
+	// NIM tidak dimasukkan agar tidak dapat diubah (meskipun dikirim oleh user)
 	Nama        string  `json:"nama" validate:"required"`
 	Prodi       string  `json:"prodi" validate:"required"`
 	Angkatan    int     `json:"angkatan" validate:"required"`
@@ -152,19 +152,18 @@ func (h *StudentHandler) Update(c *fiber.Ctx) error {
 	}
 
 	updatedData := domain.Student{
-		NIM:         req.NIM,
 		Nama:        req.Nama,
 		Prodi:       req.Prodi,
 		Angkatan:    req.Angkatan,
 		IpkTerakhir: req.IpkTerakhir,
 	}
 
-	err = h.studentService.UpdateStudent(uint(id), &updatedData)
+	updatedStudent, err := h.studentService.UpdateStudent(uint(id), &updatedData)
 	if err != nil {
 		return helper.ErrorResponse(c, fiber.StatusNotFound, "Gagal mengupdate: Data mahasiswa tidak ditemukan")
 	}
 
-	return helper.SuccessResponse(c, fiber.StatusOK, "Berhasil mengupdate data mahasiswa", nil)
+	return helper.SuccessResponse(c, fiber.StatusOK, "Berhasil mengupdate data mahasiswa", updatedStudent)
 }
 
 // Delete menangani rute DELETE /api/v1/students/:id
