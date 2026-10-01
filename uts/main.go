@@ -3,7 +3,9 @@ package main
 import (
 	"log"
 	"siakad-mini/config"
+	"siakad-mini/domain"
 	"siakad-mini/handler"
+	"siakad-mini/middleware"
 	"siakad-mini/repository"
 	"siakad-mini/service"
 
@@ -16,9 +18,15 @@ func main() {
 	config.ConnectDB()
 
 	// 2. Setup Dependency Injection (DI)
+	// -- Auth --
 	userRepo := repository.NewUserRepository(config.DB)
 	authService := service.NewAuthService(userRepo)
 	authHandler := handler.NewAuthHandler(authService)
+
+	// -- Student --
+	studentRepo := repository.NewStudentRepository(config.DB)
+	studentService := service.NewStudentService(studentRepo)
+	studentHandler := handler.NewStudentHandler(studentService)
 
 	// 3. Setup Framework Fiber
 	app := fiber.New()
@@ -42,8 +50,18 @@ func main() {
 
 	// 4. Setup Routing API
 	api := app.Group("/api/v1")
+	
+	// Rute Publik (Auth)
 	authGroup := api.Group("/auth")
 	authGroup.Post("/login", authHandler.Login)
+
+	// Rute Student (Hanya Admin untuk GET All)
+	studentGroup := api.Group("/students")
+	// Pasang perlindungan JWT dan batasan peran
+	studentGroup.Use(middleware.Protected())
+	studentGroup.Use(middleware.RequireRole(string(domain.RoleAdmin)))
+	// 10A - GET /api/v1/students
+	studentGroup.Get("/", studentHandler.GetAll)
 
 	// 5. Jalankan server
 	port := config.GetEnv("APP_PORT", "3000")
