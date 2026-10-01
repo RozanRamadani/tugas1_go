@@ -170,7 +170,7 @@ func (h *StudentHandler) Update(c *fiber.Ctx) error {
 func (h *StudentHandler) Delete(c *fiber.Ctx) error {
 	id, err := c.ParamsInt("id")
 	if err != nil {
-		return helper.ErrorResponse(c, fiber.StatusBadRequest, "ID tidak valid")
+		return helper.ErrorResponse(c, fiber.StatusUnprocessableEntity, "ID tidak valid")
 	}
 
 	err = h.studentService.DeleteStudent(uint(id))
@@ -178,5 +178,5 @@ func (h *StudentHandler) Delete(c *fiber.Ctx) error {
 		return helper.ErrorResponse(c, fiber.StatusNotFound, "Gagal menghapus: Data mahasiswa tidak ditemukan")
 	}
 
-	return helper.SuccessResponse(c, fiber.StatusOK, "Berhasil menghapus data mahasiswa (Soft Delete)", nil)
+	return c.SendStatus(fiber.StatusNoContent)
 }
