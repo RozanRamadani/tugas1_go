@@ -19,6 +19,24 @@ func SuccessResponse(c *fiber.Ctx, statusCode int, message string, data interfac
 	return c.Status(statusCode).JSON(response)
 }
 
+// SuccessResponseWithMeta digunakan untuk mengembalikan respons sukses dengan metadata.
+func SuccessResponseWithMeta(c *fiber.Ctx, statusCode int, message string, data interface{}, meta interface{}) error {
+	response := fiber.Map{
+		"success": true,
+		"message": message,
+	}
+
+	if data != nil {
+		response["data"] = data
+	}
+
+	if meta != nil {
+		response["meta"] = meta
+	}
+
+	return c.Status(statusCode).JSON(response)
+}
+
 // ErrorResponse digunakan untuk mengembalikan respons gagal/kesalahan umum (4xx, 5xx).
 // Contoh: Data tidak ditemukan, Kredensial salah, Internal Server Error.
 func ErrorResponse(c *fiber.Ctx, statusCode int, message string) error {

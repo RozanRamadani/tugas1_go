@@ -6,7 +6,7 @@ import (
 )
 
 type CourseService interface {
-	GetCourses(semester, search, available string) ([]domain.CourseResponse, error)
+	GetCourses(semester, search, available string, page, perPage int) ([]domain.CourseResponse, int64, error)
 }
 
 type courseService struct {
@@ -17,6 +17,6 @@ func NewCourseService(courseRepo repository.CourseRepository) CourseService {
 	return &courseService{courseRepo}
 }
 
-func (s *courseService) GetCourses(semester, search, available string) ([]domain.CourseResponse, error) {
-	return s.courseRepo.FindAllWithFilters(semester, search, available)
+func (s *courseService) GetCourses(semester, search, available string, page, perPage int) ([]domain.CourseResponse, int64, error) {
+	return s.courseRepo.FindAllWithFilters(semester, search, available, page, perPage)
 }

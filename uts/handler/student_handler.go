@@ -27,12 +27,39 @@ func NewStudentHandler(studentService service.StudentService) *StudentHandler {
 
 // GetAll menangani rute GET /api/v1/students
 func (h *StudentHandler) GetAll(c *fiber.Ctx) error {
-	students, err := h.studentService.GetAllStudents()
+	page := c.QueryInt("page", 1)
+	perPage := c.QueryInt("per_page", 10)
+
+	if page < 1 {
+		page = 1
+	}
+	if perPage < 1 {
+		perPage = 10
+	}
+	if perPage > 50 {
+		perPage = 50
+	}
+
+	search := c.Query("search", "")
+	prodi := c.Query("prodi", "")
+	angkatan := c.Query("angkatan", "")
+	sort := c.Query("sort", "")
+
+	students, totalData, err := h.studentService.GetAllStudents(prodi, angkatan, search, sort, page, perPage)
 	if err != nil {
 		return helper.ErrorResponse(c, fiber.StatusInternalServerError, "Gagal mengambil data mahasiswa")
 	}
 
-	return helper.SuccessResponse(c, fiber.StatusOK, "Berhasil mengambil data mahasiswa", students)
+	totalPage := int((totalData + int64(perPage) - 1) / int64(perPage))
+
+	meta := domain.PaginationMeta{
+		CurrentPage: page,
+		PerPage:     perPage,
+		TotalData:   totalData,
+		TotalPage:   totalPage,
+	}
+
+	return helper.SuccessResponseWithMeta(c, fiber.StatusOK, "Berhasil mengambil data mahasiswa", students, meta)
 }
 
 type CreateStudentRequest struct {

@@ -8,7 +8,7 @@ import (
 )
 
 type CourseRepository interface {
-	FindAllWithFilters(semester, search, available string) ([]domain.CourseResponse, error)
+	FindAllWithFilters(semester, search, available string, page, perPage int) ([]domain.CourseResponse, int64, error)
 	FindByIDForUpdate(courseID uint) (*domain.Course, error)
 	CountEnrollments(courseID uint, tahunAkademik string) (int64, error)
 }
@@ -21,8 +21,9 @@ func NewCourseRepository(db *gorm.DB) CourseRepository {
 	return &courseRepository{db}
 }
 
-func (r *courseRepository) FindAllWithFilters(semester, search, available string) ([]domain.CourseResponse, error) {
+func (r *courseRepository) FindAllWithFilters(semester, search, available string, page, perPage int) ([]domain.CourseResponse, int64, error) {
 	var results []domain.CourseResponse
+	var totalData int64
 
 	query := r.db.Table("courses c").
 		Select("c.id, c.kode_mk, c.nama_mk, c.sks, c.semester, c.kuota, COUNT(e.id) as terisi, (c.kuota - COUNT(e.id)) as sisa_kuota").
@@ -43,12 +44,23 @@ func (r *courseRepository) FindAllWithFilters(semester, search, available string
 		query = query.Having("(c.kuota - COUNT(e.id)) <= 0")
 	}
 
-	err := query.Scan(&results).Error
+	// Count total data using a subquery to handle GROUP BY and HAVING properly
+	err := r.db.Table("(?) as subquery", query).Count(&totalData).Error
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
-	return results, nil
+	// Pagination
+	offset := (page - 1) * perPage
+	query = query.Limit(perPage).Offset(offset)
+	query = query.Order("c.id ASC") // Sorting default
+
+	err = query.Scan(&results).Error
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return results, totalData, nil
 }
 
 func (r *courseRepository) FindByIDForUpdate(courseID uint) (*domain.Course, error) {

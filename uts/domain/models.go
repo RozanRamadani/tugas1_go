@@ -102,3 +102,11 @@ type StudentDetailResponse struct {
 	TotalSks         int              `json:"total_sks"`
 	BatasSks         int              `json:"batas_sks"`
 }
+
+// PaginationMeta adalah metadata umum untuk response dengan pagination.
+type PaginationMeta struct {
+	CurrentPage int   `json:"current_page"`
+	PerPage     int   `json:"per_page"`
+	TotalData   int64 `json:"total_data"`
+	TotalPage   int   `json:"total_page"`
+}

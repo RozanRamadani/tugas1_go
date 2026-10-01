@@ -8,7 +8,7 @@ import (
 )
 
 type StudentService interface {
-	GetAllStudents() ([]domain.Student, error)
+	GetAllStudents(prodi, angkatan, search, sort string, page, perPage int) ([]domain.Student, int64, error)
 	GetStudentByID(id uint) (*domain.Student, error)
 	GetStudentDetail(id uint, tahunAkademik string) (*domain.StudentDetailResponse, error)
 	CreateStudent(student *domain.Student, rawPassword string) error
@@ -24,8 +24,8 @@ func NewStudentService(studentRepo repository.StudentRepository) StudentService 
 	return &studentService{studentRepo}
 }
 
-func (s *studentService) GetAllStudents() ([]domain.Student, error) {
-	return s.studentRepo.FindAll()
+func (s *studentService) GetAllStudents(prodi, angkatan, search, sort string, page, perPage int) ([]domain.Student, int64, error) {
+	return s.studentRepo.FindAllWithFilters(prodi, angkatan, search, sort, page, perPage)
 }
 
 func (s *studentService) GetStudentByID(id uint) (*domain.Student, error) {
