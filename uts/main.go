@@ -63,6 +63,7 @@ func main() {
 	// Rute Publik (Auth)
 	authGroup := api.Group("/auth")
 	authGroup.Post("/login", authHandler.Login)
+	authGroup.Get("/me", middleware.Protected(), authHandler.Me)
 
 	// Rute Student
 	studentGroup := api.Group("/students")

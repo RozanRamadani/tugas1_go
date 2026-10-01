@@ -14,6 +14,7 @@ import (
 
 type AuthService interface {
 	Login(email, password string) (string, error)
+	GetMe(userID uint, role string) (interface{}, error)
 }
 
 type authService struct {
@@ -63,4 +64,38 @@ func (s *authService) Login(email, password string) (string, error) {
 	}
 
 	return tokenString, nil
+}
+
+func (s *authService) GetMe(userID uint, role string) (interface{}, error) {
+	user, err := s.userRepo.FindByID(userID)
+	if err != nil {
+		return nil, errors.New("user not found")
+	}
+
+	authMe := domain.AuthMeResponse{
+		ID:    user.ID,
+		Email: user.Email,
+		Role:  user.Role,
+	}
+
+	if role == string(domain.RoleAdmin) {
+		return authMe, nil
+	}
+
+	if role == string(domain.RoleMahasiswa) {
+		student, err := s.studentRepo.FindByUserID(userID)
+		if err != nil {
+			return nil, errors.New("student data not found")
+		}
+
+		return domain.AuthMeStudentResponse{
+			AuthMeResponse: authMe,
+			NIM:            student.NIM,
+			Nama:           student.Nama,
+			Prodi:          student.Prodi,
+			Angkatan:       student.Angkatan,
+		}, nil
+	}
+
+	return nil, errors.New("invalid role")
 }

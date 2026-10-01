@@ -62,3 +62,28 @@ func (h *AuthHandler) Login(c *fiber.Ctx) error {
 	}
 	return helper.SuccessResponse(c, fiber.StatusOK, "Login berhasil", data)
 }
+
+// Me memproses endpoint GET /api/v1/auth/me
+func (h *AuthHandler) Me(c *fiber.Ctx) error {
+	// Ambil userID dan role dari Fiber Locals (hasil decode JWT)
+	userIDFloat, okUser := c.Locals("user_id").(float64)
+	roleStr, okRole := c.Locals("role").(string)
+
+	if !okUser || !okRole {
+		return helper.ErrorResponse(c, fiber.StatusUnauthorized, "Token JWT tidak valid atau identitas tidak ditemukan")
+	}
+
+	userID := uint(userIDFloat)
+
+	// Panggil layer Service
+	data, err := h.authService.GetMe(userID, roleStr)
+	if err != nil {
+		if err.Error() == "student data not found" || err.Error() == "user not found" {
+			// Sesuai spesifikasi, return 401
+			return helper.ErrorResponse(c, fiber.StatusUnauthorized, "Akun tidak ditemukan atau sudah dihapus")
+		}
+		return helper.ErrorResponse(c, fiber.StatusInternalServerError, "Terjadi kesalahan internal pada server")
+	}
+
+	return helper.SuccessResponse(c, fiber.StatusOK, "Berhasil mengambil data profil", data)
+}
