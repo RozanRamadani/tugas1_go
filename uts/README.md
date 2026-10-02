@@ -52,8 +52,13 @@ Langkah-langkah untuk menyiapkan *environment* pengembangan:
    - Di Windows PowerShell: `cp .env.example .env`
    - Di Linux / macOS: `cp .env.example .env`
 
-4. **Koneksi Database**
-   Buka file `.env` di _text editor_ Anda. Sesuaikan variabel seperti `DB_USER`, `DB_PASSWORD`, dan `DB_NAME` dengan konfigurasi PostgreSQL lokal Anda. Pastikan nama database sudah Anda buat sebelumnya di DBMS (misal melalui `psql` atau pgAdmin).
+4. **Konfigurasi File `.env`**
+   Buka file `.env` di _text editor_ Anda dan sesuaikan seluruh _environment variable_ berikut:
+   - `APP_PORT`: Port untuk menjalankan server (default `3000`).
+   - `DB_HOST` & `DB_PORT`: Alamat dan port server PostgreSQL lokal Anda.
+   - `DB_USER`, `DB_PASSWORD`, & `DB_NAME`: Kredensial dan nama database PostgreSQL Anda.
+   - `JWT_SECRET`: Kunci rahasia untuk menandatangani token JWT. **Variabel ini wajib diisi** agar fitur autentikasi dan otorisasi dapat beroperasi dengan benar.
+   
    > **Catatan Keamanan:** Aturan `.gitignore` telah di-set agar mencegah file `.env` bocor ter-commit ke publik.
 
 ## 7. Database, Migration, dan Seeder
@@ -92,16 +97,16 @@ Sistem `seeder.go` telah menyuntikkan beberapa akun untuk pengujian instan.
 
 | HTTP Method | Endpoint | Role Diizinkan | Deskripsi | Status Code |
 |---|---|---|---|---|
-| `POST` | `/api/v1/auth/login` | Publik | Otentikasi user & mengembalikan Token JWT. | `200, 401, 422, 429` |
-| `GET` | `/api/v1/auth/me` | Admin, Mahasiswa | Mengekstrak identitas & role pengguna dari token. | `200, 401` |
-| `GET` | `/api/v1/students` | Admin | Menampilkan daftar mahasiswa, mendukung *pagination*. | `200, 401, 403` |
-| `POST` | `/api/v1/students` | Admin | Menambahkan data mahasiswa baru ke sistem. | `201, 403, 409, 422` |
-| `GET` | `/api/v1/students/:id` | Admin, Mahasiswa | Detail mhs & rekapan KRS (*mhs hanya bisa melihat profil sendiri*). | `200, 403, 404` |
-| `PUT` | `/api/v1/students/:id` | Admin | Memperbarui data mhs secara utuh (kecuali NIM). | `200, 403, 404, 422` |
-| `DELETE` | `/api/v1/students/:id` | Admin | Menghapus data mhs menggunakan metode *Soft Delete*. | `204, 403, 404` |
-| `GET` | `/api/v1/courses` | Admin, Mahasiswa | Daftar lengkap mata kuliah, sisa kuota, dan *pagination*. | `200, 401` |
-| `POST` | `/api/v1/enrollments` | Mahasiswa | Mengajukan KRS ke suatu *course* berdasarkan sisa IPK & kuota. | `201, 403, 409, 422` |
-| `DELETE` | `/api/v1/enrollments/:id` | Mahasiswa | Membatalkan KRS (*hanya boleh membatalkan milik sendiri*). | `204, 403, 404` |
+| `POST` | `/api/v1/auth/login` | Publik | Otentikasi user & mengembalikan Token JWT. | `200, 400, 401, 422, 429` |
+| `GET` | `/api/v1/auth/me` | Admin, Mahasiswa | Mengekstrak identitas & role pengguna dari token. | `200, 401, 500` |
+| `GET` | `/api/v1/students` | Admin | Menampilkan daftar mahasiswa, mendukung *pagination*. | `200, 401, 403, 500` |
+| `POST` | `/api/v1/students` | Admin | Menambahkan data mahasiswa baru ke sistem. | `201, 400, 401, 403, 422` |
+| `GET` | `/api/v1/students/:id` | Admin, Mahasiswa | Detail mhs & rekapan KRS (*mhs hanya bisa melihat profil sendiri*). | `200, 400, 401, 403, 404, 422, 500` |
+| `PUT` | `/api/v1/students/:id` | Admin | Memperbarui data mhs secara utuh (kecuali NIM). | `200, 400, 401, 403, 404, 422` |
+| `DELETE` | `/api/v1/students/:id` | Admin | Menghapus data mhs menggunakan metode *Soft Delete*. | `204, 401, 403, 404, 422` |
+| `GET` | `/api/v1/courses` | Admin, Mahasiswa | Daftar lengkap mata kuliah, sisa kuota, dan *pagination*. | `200, 401, 403, 500` |
+| `POST` | `/api/v1/enrollments` | Mahasiswa | Mengajukan KRS ke suatu *course* berdasarkan sisa IPK & kuota. | `201, 400, 401, 403, 404, 409, 422, 500` |
+| `DELETE` | `/api/v1/enrollments/:id` | Mahasiswa | Membatalkan KRS (*hanya boleh membatalkan milik sendiri*). | `204, 401, 403, 404, 422, 500` |
 
 *Format Response (Contoh Berhasil)*
 ```json
