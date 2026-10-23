@@ -47,16 +47,19 @@ func main() {
 
 	userService := service.NewUserService(userRepository, permissions)
 	courseService := service.NewCourseService(courseRepository, txManager)
+	supervisorRepository := repository.NewSupervisorRepository(pool)
+	supervisorService := service.NewSupervisorService(supervisorRepository, txManager)
 
 	// ============================================================
 	// 3. BUAT APLIKASI FIBER
 	// ============================================================
 	app := config.NewApp(route.Dependencies{
-		Pool:          pool,
-		Permissions:   permissions,
-		UserService:   userService,
-		CourseService: courseService,
-		JWT:           jwtManager,
+		Pool:              pool,
+		Permissions:       permissions,
+		UserService:       userService,
+		CourseService:     courseService,
+		SupervisorService: supervisorService,
+		JWT:               jwtManager,
 	})
 
 	// ============================================================
