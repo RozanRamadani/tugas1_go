@@ -32,6 +32,7 @@ func main() {
 	userRepository := repository.NewUserRepository(pool)
 	roleRepository := repository.NewRoleRepository(pool)
 	courseRepository := repository.NewCourseRepository(pool)
+	txManager := repository.NewTxManager(pool)
 
 	rawPermissions, err := roleRepository.LoadPermissions(context.Background())
 	if err != nil {
@@ -45,7 +46,7 @@ func main() {
 	jwtManager := helper.NewJWTManager(jwtSecret, "latihan-fiber", 15*time.Minute, 7*24*time.Hour)
 
 	userService := service.NewUserService(userRepository, permissions)
-	courseService := service.NewCourseService(courseRepository)
+	courseService := service.NewCourseService(courseRepository, txManager)
 
 	// ============================================================
 	// 3. BUAT APLIKASI FIBER
