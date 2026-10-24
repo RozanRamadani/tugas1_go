@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 
 	"latihan-fiber/app/model"
@@ -53,9 +54,15 @@ func RequireAuth(jwtManager *helper.JWTManager) fiber.Handler {
 			})
 		}
 
+		username := claims.Username
+		if username == "" {
+			username = fmt.Sprintf("mhs%03d", claims.UserID)
+		}
+
 		user := model.AuthUser{
-			UserID: claims.UserID,
-			Role:   claims.Role,
+			UserID:   claims.UserID,
+			Username: username,
+			Role:     claims.Role,
 		}
 
 		c.Locals(UserKey, user)

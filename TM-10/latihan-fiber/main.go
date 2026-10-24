@@ -35,7 +35,7 @@ func main() {
 		defer cancel()
 		_ = mongoClient.Disconnect(ctx)
 	}()
-	_ = mongoClient.Database(config.GetEnv("MONGO_DATABASE", "praktikum_backend"))
+	mongoDB := mongoClient.Database(config.GetEnv("MONGO_DATABASE", "praktikum_backend"))
 
 	// ============================================================
 	// 2. RAKIT DEPENDENCY & LOAD PERMISSION
@@ -44,6 +44,16 @@ func main() {
 	roleRepository := repository.NewRoleRepository(pool)
 	courseRepository := repository.NewCourseRepository(pool)
 	txManager := repository.NewTxManager(pool)
+
+	reviewRepository := repository.NewReviewRepository(mongoDB)
+	if err := reviewRepository.EnsureIndexes(context.Background()); err != nil {
+		log.Fatalf("gagal membuat index review MongoDB: %v", err)
+	}
+
+	portfolioRepository := repository.NewPortfolioRepository(mongoDB)
+	if err := portfolioRepository.EnsureIndexes(context.Background()); err != nil {
+		log.Fatalf("gagal membuat index portfolio MongoDB: %v", err)
+	}
 
 	rawPermissions, err := roleRepository.LoadPermissions(context.Background())
 	if err != nil {
@@ -56,10 +66,14 @@ func main() {
 	jwtSecret := config.GetEnv("JWT_SECRET", "supersecretloadtestkey123456789012")
 	jwtManager := helper.NewJWTManager(jwtSecret, "latihan-fiber", 15*time.Minute, 7*24*time.Hour)
 
+	studentRepository := repository.NewStudentRepository(pool)
+
 	userService := service.NewUserService(userRepository, permissions)
 	courseService := service.NewCourseService(courseRepository, txManager)
 	supervisorRepository := repository.NewSupervisorRepository(pool)
 	supervisorService := service.NewSupervisorService(supervisorRepository, txManager)
+	reviewService := service.NewReviewService(reviewRepository, courseRepository, permissions)
+	portfolioService := service.NewPortfolioService(portfolioRepository, studentRepository)
 
 	// ============================================================
 	// 3. BUAT APLIKASI FIBER
@@ -71,6 +85,8 @@ func main() {
 		UserService:       userService,
 		CourseService:     courseService,
 		SupervisorService: supervisorService,
+		ReviewService:     reviewService,
+		PortfolioService:  portfolioService,
 		JWT:               jwtManager,
 	})
 

@@ -12,8 +12,9 @@ type User struct {
 }
 
 type AuthUser struct {
-	UserID int    `json:"user_id"`
-	Role   string `json:"role"`
+	UserID   int    `json:"user_id"`
+	Username string `json:"username"`
+	Role     string `json:"role"`
 }
 
 // AssignRoleRequest dipakai endpoint PATCH /users/:id/role.

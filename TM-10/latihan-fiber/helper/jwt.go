@@ -21,8 +21,9 @@ type JWTManager struct {
 }
 
 type Claims struct {
-	UserID int    `json:"user_id"`
-	Role   string `json:"role"`
+	UserID   int    `json:"user_id"`
+	Username string `json:"username,omitempty"`
+	Role     string `json:"role"`
 	jwt.RegisteredClaims
 }
 
@@ -42,11 +43,17 @@ func NewJWTManager(
 
 // GenerateAccessToken membuat JWT access token.
 func (j *JWTManager) GenerateAccessToken(userID int, role string) (string, error) {
+	return j.GenerateAccessTokenWithUsername(userID, "", role)
+}
+
+// GenerateAccessTokenWithUsername membuat JWT access token dengan username.
+func (j *JWTManager) GenerateAccessTokenWithUsername(userID int, username, role string) (string, error) {
 	now := time.Now()
 
 	claims := Claims{
-		UserID: userID,
-		Role:   role,
+		UserID:   userID,
+		Username: username,
+		Role:     role,
 		RegisteredClaims: jwt.RegisteredClaims{
 			Subject:   strconv.Itoa(userID),
 			Issuer:    j.Issuer,

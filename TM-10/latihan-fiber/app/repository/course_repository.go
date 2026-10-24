@@ -31,6 +31,7 @@ type CourseRepository interface {
 	DecrementEnrolled(ctx context.Context, courseID int) (model.Course, error)
 	DeleteEnrollment(ctx context.Context, courseID, userID int) error
 	InsertEnrollment(ctx context.Context, courseID, userID int) error
+	IsEnrolled(ctx context.Context, courseID, userID int) (bool, error)
 
 	LockCourses(ctx context.Context, ids ...int) error
 	UpdateQuota(ctx context.Context, id, quota, version int) (model.Course, error)
@@ -201,6 +202,19 @@ func (r *coursePostgresRepository) InsertEnrollment(ctx context.Context, courseI
 		return fmt.Errorf("mencatat pendaftaran: %w", err)
 	}
 	return nil
+}
+
+// IsEnrolled dipakai layer lain — misalnya layanan ulasan di MongoDB — yang
+// perlu tahu apakah seorang mahasiswa terdaftar di sebuah kelas.
+func (r *coursePostgresRepository) IsEnrolled(ctx context.Context, courseID, userID int) (bool, error) {
+	var exists bool
+	err := r.db.QueryRow(ctx,
+		"SELECT EXISTS (SELECT 1 FROM enrollments WHERE course_id = $1 AND user_id = $2)",
+		courseID, userID).Scan(&exists)
+	if err != nil {
+		return false, fmt.Errorf("memeriksa pendaftaran: %w", err)
+	}
+	return exists, nil
 }
 
 // LockCourses mengunci beberapa kelas sekaligus, SELALU dalam urutan id menaik.

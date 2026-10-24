@@ -20,6 +20,8 @@ type Dependencies struct {
 	UserService       *service.UserService
 	CourseService     *service.CourseService
 	SupervisorService *service.SupervisorService
+	ReviewService     *service.ReviewService
+	PortfolioService  *service.PortfolioService
 	JWT               *helper.JWTManager
 }
 
@@ -73,6 +75,22 @@ func Register(app *fiber.App, deps Dependencies) {
 	courses.Delete("/:id/enroll", deps.CourseService.Drop)
 	courses.Patch("/:id", middleware.RequirePermission(perms, "course:manage"), deps.CourseService.UpdateQuota)
 
+	if deps.ReviewService != nil {
+		courses.Get("/:id/reviews", deps.ReviewService.ListByCourse)
+		courses.Get("/:id/reviews/summary", deps.ReviewService.Summary)
+		courses.Post("/:id/reviews", deps.ReviewService.Create)
+
+		// --- ulasan kelas (MongoDB) ---
+		reviews := api.Group("/reviews",
+			middleware.RequireJSON,
+			middleware.RequireAuth(deps.JWT))
+		reviews.Get("/:id", deps.ReviewService.Get)
+		reviews.Patch("/:id", deps.ReviewService.Update)
+		reviews.Delete("/:id", deps.ReviewService.Delete)
+		reviews.Post("/:id/replies", deps.ReviewService.Reply)
+		reviews.Post("/:id/helpful", deps.ReviewService.MarkHelpful)
+	}
+
 	enrollments := api.Group("/enrollments",
 		middleware.RequireJSON,
 		middleware.RequireAuth(deps.JWT))
@@ -98,6 +116,19 @@ func Register(app *fiber.App, deps Dependencies) {
 		supervisions.Post("/switch",
 			middleware.RequirePermission(perms, "supervision:manage"),
 			deps.SupervisorService.Switch)
+	}
+
+	// --- portofolio mahasiswa (Tugas Mandiri Modul 10) ---
+	if deps.PortfolioService != nil {
+		students := api.Group("/students",
+			middleware.RequireJSON,
+			middleware.RequireAuth(deps.JWT))
+		students.Get("/:id/portfolio", deps.PortfolioService.Get)
+		students.Put("/:id/portfolio", deps.PortfolioService.Upsert)
+		students.Post("/:id/portfolio/projects", deps.PortfolioService.AddProject)
+		students.Delete("/:id/portfolio/projects/:projectId", deps.PortfolioService.DeleteProject)
+
+		api.Get("/portfolios/stats/technologies", deps.PortfolioService.TopTechnologies)
 	}
 }
 
