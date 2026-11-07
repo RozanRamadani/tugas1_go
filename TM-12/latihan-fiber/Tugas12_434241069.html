@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Laporan Praktikum Modul 12 - Rozan Aiman Ramadani (434241069)</title>
+<style>
+  @page {
+    size: A4;
+    margin: 20mm 18mm 20mm 18mm;
+    @bottom-right {
+      content: counter(page);
+    }
+  }
+  body {
+    font-family: 'Segoe UI', Helvetica, Arial, sans-serif;
+    color: #1e293b;
+    line-height: 1.55;
+    font-size: 10pt;
+    margin: 0;
+    padding: 0;
+  }
+  h1, h2, h3, h4 {
+    color: #0f172a;
+    font-weight: 700;
+  }
+  h1 {
+    font-size: 19pt;
+    border-bottom: 2.5px solid #2563eb;
+    padding-bottom: 8px;
+    margin-top: 0;
+    margin-bottom: 12px;
+  }
+  h2 {
+    font-size: 13.5pt;
+    border-bottom: 1.5px solid #cbd5e1;
+    padding-bottom: 5px;
+    margin-top: 24px;
+    margin-bottom: 10px;
+    page-break-after: avoid;
+  }
+  h3 {
+    font-size: 11pt;
+    color: #1e40af;
+    margin-top: 16px;
+    margin-bottom: 6px;
+    page-break-after: avoid;
+  }
+  .header-box {
+    background-color: #f8fafc;
+    border: 1px solid #cbd5e1;
+    border-left: 5px solid #2563eb;
+    padding: 12px 16px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+  }
+  .header-box table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .header-box td {
+    padding: 3px 6px;
+    font-size: 9.5pt;
+    vertical-align: top;
+  }
+  .header-box td.label {
+    width: 180px;
+    font-weight: 600;
+    color: #475569;
+  }
+  table.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0 16px 0;
+    font-size: 8.5pt;
+  }
+  table.data-table th, table.data-table td {
+    border: 1px solid #cbd5e1;
+    padding: 6px 8px;
+    text-align: left;
+    vertical-align: top;
+  }
+  table.data-table th {
+    background-color: #f1f5f9;
+    color: #0f172a;
+    font-weight: 600;
+  }
+  table.data-table tr:nth-child(even) {
+    background-color: #f8fafc;
+  }
+  code {
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 8.5pt;
+    background-color: #f1f5f9;
+    padding: 1px 4px;
+    border-radius: 3px;
+    color: #0f172a;
+    border: 1px solid #e2e8f0;
+  }
+  pre {
+    background-color: #0f172a;
+    color: #f8fafc;
+    padding: 10px 12px;
+    border-radius: 5px;
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 8pt;
+    line-height: 1.4;
+    overflow-x: auto;
+    margin: 8px 0 14px 0;
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+  .badge-pass {
+    display: inline-block;
+    background-color: #dcfce7;
+    color: #166534;
+    font-weight: 700;
+    font-size: 7.5pt;
+    padding: 2px 6px;
+    border-radius: 4px;
+    border: 1px solid #bbf7d0;
+  }
+  .badge-fail {
+    display: inline-block;
+    background-color: #fee2e2;
+    color: #991b1b;
+    font-weight: 700;
+    font-size: 7.5pt;
+    padding: 2px 6px;
+    border-radius: 4px;
+    border: 1px solid #fecaca;
+  }
+  .callout {
+    background-color: #eff6ff;
+    border-left: 4px solid #3b82f6;
+    padding: 8px 12px;
+    margin: 10px 0;
+    font-size: 9pt;
+    border-radius: 0 4px 4px 0;
+  }
+  .page-break {
+    page-break-before: always;
+  }
+</style>
+</head>
+<body>
+
+<h1>LAPORAN PRAKTIKUM PEMROGRAMAN BACKEND LANJUT</h1>
+<h3 style="margin-top: -6px; color: #475569; font-weight: 500;">Pertemuan 12 — Testing & Quality, API Documentation, dan Docker Deployment</h3>
+
+<div class="header-box">
+  <table>
+    <tr>
+      <td class="label">Nama Mahasiswa</td>
+      <td>: <strong>Rozan Aiman Ramadani</strong></td>
+    </tr>
+    <tr>
+      <td class="label">NIM</td>
+      <td>: <strong>434241069</strong></td>
+    </tr>
+    <tr>
+      <td class="label">Program Studi</td>
+      <td>: D4 Teknik Informatika — Fakultas Vokasi, Universitas Airlangga</td>
+    </tr>
+    <tr>
+      <td class="label">Mata Kuliah</td>
+      <td>: Praktikum Pemrograman Backend Lanjut (Semester 5)</td>
+    </tr>
+    <tr>
+      <td class="label">Tautan Repository GitHub</td>
+      <td>: <strong><a href="https://github.com/RozanRamadani/tugas1_go" target="_blank">https://github.com/RozanRamadani/tugas1_go</a></strong></td>
+    </tr>
+    <tr>
+      <td class="label">Tanggal Pengujian</td>
+      <td>: 7 November 2026</td>
+    </tr>
+  </table>
+</div>
+
+<h2>D.1 Berita Acara Perbaikan (9 Bug Tersembunyi pada B1)</h2>
+<p>
+Berikut adalah dokumentasi lengkap 9 kesalahan yang ditanam di Bagian B1, metode pemeriksaan yang mengungkapnya, akar masalah, perbaikan yang diterapkan, serta bukti keberhasilannya:
+</p>
+
+<table class="data-table">
+  <thead>
+    <tr>
+      <th style="width: 25px;">No</th>
+      <th style="width: 130px;">Lokasi (File, Fungsi)</th>
+      <th style="width: 140px;">Gejala yang Diamati</th>
+      <th style="width: 110px;">Pemeriksaan yang Mengungkapnya</th>
+      <th>Akar Masalah</th>
+      <th>Perbaikan</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>1</td>
+      <td><code>course_rules_test.go</code><br><code>TestWithinCreditLimit</code></td>
+      <td>Test tetap PASS walaupun logika diubah menjadi <code>&lt;</code> (melewati batas tepat 24 SKS tidak tertangkap).</td>
+      <td><strong>Uji Mutasi T5</strong></td>
+      <td>Tabel uji hanya memuat kasus 0, 12, 22(+3), dan 24(+1). Tidak ada uji untuk kondisi batas tepat <code>taken + adding == 24</code> (misal 21 + 3).</td>
+      <td>Menambahkan skenario batas pada slice <code>tests</code>: <code>{name: "tepat di batas 24 SKS", taken: 21, adding: 3, want: true}</code>.</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td><code>review_rules_test.go</code><br><code>TestNormalizeTags</code></td>
+      <td>Kompilasi ditolak: fungsi test tidak memenuhi signature standar Go testing.</td>
+      <td><strong>Compiler</strong></td>
+      <td>Parameter testing ditulis tanpa pointer (<code>t testing.T</code>) alih-alih <code>t *testing.T</code>, melanggar kontrak framework test Go.</td>
+      <td>Mengubah signature fungsi menjadi <code>func TestNormalizeTags(t *testing.T)</code>.</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td><code>fakes_test.go</code><br><code>fakeReviewRepo.FindByCourse</code></td>
+      <td>Kompilasi gagal pada compile-time assertion: <code>cannot use (*fakeReviewRepo)(nil) as repository.ReviewRepository</code>.</td>
+      <td><strong>Compiler</strong></td>
+      <td>Method fake menggunakan signature usang <code>(ctx context.Context, courseID int)</code>, padahal interface <code>ReviewRepository</code> membutuhkan <code>(ctx context.Context, q model.ReviewQuery)</code>.</td>
+      <td>Menyesuaikan signature dan implementasi filtering query: <code>func (f *fakeReviewRepo) FindByCourse(_ context.Context, q model.ReviewQuery) ([]model.Review, error)</code>.</td>
+    </tr>
+    <tr>
+      <td>4</td>
+      <td><code>review_service_test.go</code><br><code>newTestEnv</code></td>
+      <td>Test flaky dan gagal saat urutan diacak (<code>TestListReviews_NewCourseIsEmpty</code> menemukan data sisa test sebelumnya).</td>
+      <td><strong>T2 (<code>-shuffle=on</code>)</strong></td>
+      <td>Repository ulasan fake dideklarasikan sebagai variabel global (<code>var sharedReviews = newFakeReviewRepo()</code>), menyebabkan <i>state leakage</i> antar-test.</td>
+      <td>Menginstansiasi repository fake baru di dalam fungsi <code>newTestEnv(t)</code> menggunakan <code>reviews := newFakeReviewRepo()</code>.</td>
+    </tr>
+    <tr>
+      <td>5</td>
+      <td><code>review_errors_test.go</code><br><code>TestTranslateReviewError</code></td>
+      <td>Kompilasi gagal: <code>cannot refer to unexported name service.translateReviewError</code>.</td>
+      <td><strong>Compiler</strong></td>
+      <td>File menggunakan <code>package service_test</code> (black-box), sehingga tidak dapat mengakses fungsi privat <code>translateReviewError</code> di package <code>service</code>.</td>
+      <td>Mengubah header package menjadi <code>package service</code> (white-box test).</td>
+    </tr>
+    <tr>
+      <td>6</td>
+      <td><code>notification_worker_test.go</code><br><code>TestHandleSend_...</code></td>
+      <td>Kompilasi gagal: <code>not enough arguments in call to NewNotificationWorker</code> (5 argumen diberikan, butuh 6).</td>
+      <td><strong>Compiler</strong></td>
+      <td>Konstruktor <code>NewNotificationWorker</code> membutuhkan 6 parameter (termasuk mailer), tetapi hanya dioper 5 parameter.</td>
+      <td>Menambahkan argumen <code>nil</code> untuk parameter mailer yang tidak disentuh skenario kegagalan permanen.</td>
+    </tr>
+    <tr>
+      <td>7</td>
+      <td><code>notification_worker_test.go</code><br><code>TestHandleSend_...</code></td>
+      <td>Test gagal: error SkipRetry dianggap tidak cocok karena dibungkus oleh layer lain (wrapped error).</td>
+      <td><strong>T1 (<code>go test ./...</code>)</strong></td>
+      <td>Pemeriksaan error menggunakan operator kesetaraan langsung <code>err != asynq.SkipRetry</code> yang tidak dapat mendeteksi wrapped error (<code>%w</code>).</td>
+      <td>Menggunakan fungsi unwrap standar Go: <code>if !errors.Is(err, asynq.SkipRetry)</code>.</td>
+    </tr>
+    <tr>
+      <td>8</td>
+      <td><code>tests/integration/main_test.go</code><br><code>TestMain</code></td>
+      <td>Integration test selalu dilewati: mencetak <code>TEST_DATABASE_URL tidak diisi: integration test dilewati</code> padahal variabel terisi.</td>
+      <td><strong>T4</strong></td>
+      <td>Kondisi pengecekan terbalik: <code>if dsn != ""</code> membuat program langsung keluar (exit 0) saat DSN tersedia.</td>
+      <td>Memperbaiki logika percabangan menjadi <code>if dsn == ""</code>.</td>
+    </tr>
+    <tr>
+      <td>9</td>
+      <td><code>tests/integration/main_test.go</code><br><code>seedCourse</code></td>
+      <td>Test gagal dengan <code>course not found</code> atau <code>enrolled_count = 0</code> karena baris kelas sudah terhapus sebelum assertion test berjalan.</td>
+      <td><strong>T4</strong></td>
+      <td>Pembersihan database di dalam helper <code>seedCourse</code> menggunakan <code>defer func()</code>, sehingga data dihapus seketika helper selesai dieksekusi (bukan saat test selesai).</td>
+      <td>Mengganti <code>defer func()</code> dengan <code>t.Cleanup(func() { ... })</code> agar pembersihan ditunda hingga seluruh lifecycle test selesai.</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="page-break"></div>
+
+<h2>D.2 Menambah Test (Integration Tests & Mutation Testing)</h2>
+<p>
+Sesuai instruksi Tugas Mandiri D.2, telah ditambahkan dua skenario integration test pada <code>tests/integration/mandiri_test.go</code>:
+</p>
+
+<h3>1. Kode Integration Test Baru (<code>tests/integration/mandiri_test.go</code>)</h3>
+<pre><code>//go:build integration
+package integration_test
+
+import (
+	"context"
+	"net/http"
+	"net/http/httptest"
+	"strconv"
+	"strings"
+	"testing"
+	"latihan-fiber/app/model"
+)
+
+// D.2.1: Swap ke kelas yang kuotanya penuh harus ditolak 409 COURSE_FULL,
+// mahasiswa tetap di kelas asal, enrolled_count tidak berubah, dan outbox kosong.
+func TestEnrollEndpoint_SwapCourseFull(t *testing.T) {
+	a := newAPI(t)
+	student := seedStudent(t)
+	targetStudent := seedStudent(t)
+
+	courseA := seedCourse(t, 3, 40) // kelas asal
+	courseB := seedCourse(t, 3, 1)  // kelas tujuan dengan kuota 1
+
+	if status, _ := a.enroll(t, student, courseA.ID); status != http.StatusCreated {
+		t.Fatalf("enroll kelas A: status = %d, seharusnya 201", status)
+	}
+	if status, _ := a.enroll(t, targetStudent, courseB.ID); status != http.StatusCreated {
+		t.Fatalf("enroll target student kelas B: status = %d, seharusnya 201", status)
+	}
+
+	token, _ := a.jwt.GenerateAccessToken(model.AuthUser{UserID: student.ID, Username: student.Username, Role: "user"})
+	body := `{"from_course_id":` + strconv.Itoa(courseA.ID) + `,"to_course_id":` + strconv.Itoa(courseB.ID) + `}`
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/enrollments/swap", strings.NewReader(body))
+	req.Header.Set("Authorization", "Bearer "+token)
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := a.app.Test(req, -1)
+	if err != nil {
+		t.Fatalf("request swap: %v", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusConflict {
+		t.Errorf("status swap = %d, seharusnya 409 Conflict", resp.StatusCode)
+	}
+
+	enrolledA := countRows(t, `SELECT COUNT(*) FROM enrollments WHERE user_id = $1 AND course_id = $2`, student.ID, courseA.ID)
+	if enrolledA != 1 {
+		t.Errorf("mahasiswa harus tetap terdaftar di kelas asal (A)")
+	}
+
+	cA := countRows(t, `SELECT enrolled_count FROM courses WHERE id = $1`, courseA.ID)
+	cB := countRows(t, `SELECT enrolled_count FROM courses WHERE id = $1`, courseB.ID)
+	if cA != 1 || cB != 1 {
+		t.Errorf("enrolled_count berubah: cA=%d, cB=%d, seharusnya tetap 1", cA, cB)
+	}
+
+	swappedEvents := countRows(t, `SELECT COUNT(*) FROM outbox WHERE (payload->>'user_id')::INT = $1 AND event_type = $2`,
+		student.ID, model.EventEnrollmentSwapped)
+	if swappedEvents != 0 {
+		t.Errorf("event enrollment.swapped = %d, seharusnya 0", swappedEvents)
+	}
+}
+
+// D.2.2: Drop kelas berhasil menghasilkan 204 No Content, baris enrollment hilang,
+// enrolled_count berkurang satu, dan outbox mencatat event enrollment.dropped.
+func TestEnrollEndpoint_DropSuccess(t *testing.T) {
+	a := newAPI(t)
+	student := seedStudent(t)
+	course := seedCourse(t, 3, 40)
+
+	if status, _ := a.enroll(t, student, course.ID); status != http.StatusCreated {
+		t.Fatalf("enroll gagal: status = %d", status)
+	}
+
+	token, _ := a.jwt.GenerateAccessToken(model.AuthUser{UserID: student.ID, Username: student.Username, Role: "user"})
+	req := httptest.NewRequest(http.MethodDelete, "/api/v1/courses/"+strconv.Itoa(course.ID)+"/enroll", nil)
+	req.Header.Set("Authorization", "Bearer "+token)
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := a.app.Test(req, -1)
+	if err != nil {
+		t.Fatalf("request drop: %v", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusNoContent {
+		t.Fatalf("status drop = %d, seharusnya 204", resp.StatusCode)
+	}
+
+	enrolled := countRows(t, `SELECT COUNT(*) FROM enrollments WHERE user_id = $1 AND course_id = $2`, student.ID, course.ID)
+	if enrolled != 0 {
+		t.Errorf("baris enrollment = %d, seharusnya 0 setelah drop", enrolled)
+	}
+
+	count := countRows(t, `SELECT enrolled_count FROM courses WHERE id = $1`, course.ID)
+	if count != 0 {
+		t.Errorf("enrolled_count = %d, seharusnya 0 setelah drop", count)
+	}
+
+	dropEvents := countRows(t, `SELECT COUNT(*) FROM outbox WHERE (payload->>'user_id')::INT = $1 AND event_type = $2`,
+		student.ID, model.EventEnrollmentDropped)
+	if dropEvents != 1 {
+		t.Errorf("event enrollment.dropped = %d, seharusnya tepat 1", dropEvents)
+	}
+}</code></pre>
+
+<h3>2. Bukti Uji Mutasi Test D.2</h3>
+<table class="data-table">
+  <thead>
+    <tr>
+      <th>Uji Mutasi</th>
+      <th>File & Mutasi Kode Production</th>
+      <th>Hasil Pengujian (Bukti Test Gagal / Alarm Berbunyi)</th>
+      <th>Status</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Mutasi Skenario 1</strong><br>(<code>TestEnrollEndpoint_SwapCourseFull</code>)</td>
+      <td><code>app/service/course_service.go</code>: Pada method <code>Swap</code>, bypass validasi kuota tujuan dengan mengganti pengecekan kuota (<code>repo.FindByID(toID)</code>).</td>
+      <td>
+        <pre style="margin:0; background:#1e293b; color:#fca5a5;">=== RUN   TestEnrollEndpoint_SwapCourseFull
+    mandiri_test.go:40: status swap = 200, seharusnya 409 Conflict
+--- FAIL: TestEnrollEndpoint_SwapCourseFull (0.04s)
+FAIL</pre>
+      </td>
+      <td><span class="badge-pass">TERBUKTI PEKA (KILLED)</span></td>
+    </tr>
+    <tr>
+      <td><strong>Mutasi Skenario 2</strong><br>(<code>TestEnrollEndpoint_DropSuccess</code>)</td>
+      <td><code>app/service/course_service.go</code>: Pada method <code>Drop</code>, mutasi fungsi dekrementasi dengan menghapus pemanggilan <code>courses.DecrementEnrolled</code>.</td>
+      <td>
+        <pre style="margin:0; background:#1e293b; color:#fca5a5;">=== RUN   TestEnrollEndpoint_DropSuccess
+    mandiri_test.go:81: enrolled_count = 1, seharusnya 0 setelah drop
+--- FAIL: TestEnrollEndpoint_DropSuccess (0.02s)
+FAIL</pre>
+      </td>
+      <td><span class="badge-pass">TERBUKTI PEKA (KILLED)</span></td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="page-break"></div>
+
+<h2>D.3 Melengkapi Dokumentasi API (OpenAPI / Swagger)</h2>
+<p>
+Seluruh endpoint yang disyaratkan pada Bagian B2 dan Tugas Mandiri D.3 telah dilengkapi dengan anotasi deklaratif Swagger lengkap (summary, tags, param, success/failure response models, dan security header). Tidak ada lagi response yang menggunakan <code>fiber.Map</code> tanpa tipe eksplisit.
+</p>
+
+<h3>Daftar Lengkap 20 Endpoint yang Terdaftar di <code>docs/swagger.json</code>:</h3>
+<table class="data-table">
+  <thead>
+    <tr>
+      <th>No</th>
+      <th>Tag</th>
+      <th>HTTP Method & Path</th>
+      <th>Deskripsi Ringkas / Ringkasan Anotasi</th>
+      <th>Security</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>1</td><td><code>auth</code></td><td><code>POST /auth/register</code></td><td>Mendaftarkan akun baru (role default "user")</td><td>Public</td></tr>
+    <tr><td>2</td><td><code>auth</code></td><td><code>POST /auth/login</code></td><td>Login dan mendapatkan TokenPair (access + refresh)</td><td>Public</td></tr>
+    <tr><td>3</td><td><code>auth</code></td><td><code>POST /auth/refresh</code></td><td>Menukar refresh token (rotation)</td><td>Public</td></tr>
+    <tr><td>4</td><td><code>auth</code></td><td><code>POST /auth/logout</code></td><td>Mencabut refresh token pengguna</td><td>BearerAuth</td></tr>
+    <tr><td>5</td><td><code>auth</code></td><td><code>GET /auth/me</code></td><td>Profil akun pengguna yang sedang login</td><td>BearerAuth</td></tr>
+    <tr><td>6</td><td><code>courses</code></td><td><code>GET /courses</code></td><td>Daftar seluruh mata kuliah yang tersedia</td><td>BearerAuth</td></tr>
+    <tr><td>7</td><td><code>courses</code></td><td><code>GET /courses/mine</code></td><td>Daftar KRS milik mahasiswa yang sedang login</td><td>BearerAuth</td></tr>
+    <tr><td>8</td><td><code>courses</code></td><td><code>GET /courses/{id}</code></td><td>Detail lengkap satu kelas berdasarkan ID</td><td>BearerAuth</td></tr>
+    <tr><td>9</td><td><code>courses</code></td><td><code>POST /courses/{id}/enroll</code></td><td>Mendaftar satu kelas (transaksional + outbox)</td><td>BearerAuth</td></tr>
+    <tr><td>10</td><td><code>courses</code></td><td><code>DELETE /courses/{id}/enroll</code></td><td>Keluar dari kelas (drop mata kuliah)</td><td>BearerAuth</td></tr>
+    <tr><td>11</td><td><code>courses</code></td><td><code>POST /enrollments/swap</code></td><td>Pindah kelas secara atomik</td><td>BearerAuth</td></tr>
+    <tr><td>12</td><td><code>courses</code></td><td><code>PATCH /courses/{id}</code></td><td>Mengubah kuota kelas (Optimistic Locking admin)</td><td>BearerAuth</td></tr>
+    <tr><td>13</td><td><code>reviews</code></td><td><code>POST /courses/{id}/reviews</code></td><td>Menulis ulasan mata kuliah (khusus peserta)</td><td>BearerAuth</td></tr>
+    <tr><td>14</td><td><code>reviews</code></td><td><code>GET /courses/{id}/reviews</code></td><td>Daftar ulasan kelas dengan cursor pagination</td><td>BearerAuth</td></tr>
+    <tr><td>15</td><td><code>reviews</code></td><td><code>GET /courses/{id}/reviews/summary</code></td><td>Ringkasan statistik rating ulasan kelas</td><td>BearerAuth</td></tr>
+    <tr><td>16</td><td><code>reviews</code></td><td><code>GET /reviews/{id}</code></td><td>Detail satu ulasan mata kuliah</td><td>BearerAuth</td></tr>
+    <tr><td>17</td><td><code>reviews</code></td><td><code>POST /reviews/{id}/helpful</code></td><td>Memberikan vote bermanfaat pada ulasan</td><td>BearerAuth</td></tr>
+    <tr><td>18</td><td><code>reviews</code></td><td><code>POST /reviews/{id}/replies</code></td><td>Membalas ulasan mahasiswa (reply limit)</td><td>BearerAuth</td></tr>
+    <tr><td>19</td><td><code>users</code></td><td><code>GET /users</code></td><td>Daftar seluruh user terdaftar (admin RBAC)</td><td>BearerAuth</td></tr>
+    <tr><td>20</td><td><code>admin</code></td><td><code>GET /admin/queue</code></td><td>Status antrean outbox dan redis queue monitor</td><td>BearerAuth</td></tr>
+  </tbody>
+</table>
+
+<div class="callout">
+  <strong>Bukti Verifikasi Dokumen Swagger:</strong>
+  Perintah <code>go tool swag init</code> menghasilkan dokumen <code>docs/docs.go</code>, <code>docs/swagger.json</code>, dan <code>docs/swagger.yaml</code> secara sempurna tanpa warning maupun error tipe data. Swagger UI dapat diakses secara langsung pada <code>http://localhost:8080/swagger/index.html</code> (Docker) maupun <code>http://localhost:3000/swagger/index.html</code> (Lokal).
+</div>
+
+<div class="page-break"></div>
+
+<h2>D.4 Analisis Singkat</h2>
+
+<h3>1. Coverage vs. Mutation Testing pada Kasus <code>TestWithinCreditLimit</code></h3>
+<p>
+<strong>Mengapa coverage tidak dapat menggantikan uji mutation?</strong><br>
+Coverage (khususnya <i>statement/line coverage</i>) hanya mencatat apakah sebuah baris kode <i>pernah dieksekusi</i> saat test suite berjalan, namun sama sekali tidak menilai apakah logika, batas kondisi tepi, dan hasil eksekusi tersebut diverifikasi dengan teliti melalui assertion. Sebagai contoh nyata, fungsi <code>WithinCreditLimit(taken, adding int) bool { return taken + adding &lt;= 24 }</code> hanya terdiri dari satu baris logika. Jika test hanya menyertakan skenario <code>taken: 0, adding: 3</code>, coverage fungsi tersebut langsung tercatat <strong>100.0%</strong>. Namun, apabila operator diubah menjadi cacat logika (<code>&lt;</code> alih-alih <code>&lt;=</code>), test tersebut tetap lulus (PASS). Uji mutasi membuktikan bahwa coverage 100% dapat memberikan rasa aman palsu jika tidak diuji dengan mutasi kode produksi.
+</p>
+<p>
+<strong>Mengapa uji mutation tidak dapat menggantikan coverage?</strong><br>
+Uji mutasi hanya dapat diterapkan secara efektif pada kode yang sudah memiliki test awal. Jika suatu bagian kode atau percabangan sama sekali belum pernah dieksekusi oleh test (coverage 0%), mutasi pada bagian tersebut tidak ada gunanya karena pasti tidak ada test yang mengujinya. Selain itu, uji mutasi memerlukan biaya komputasi yang sangat tinggi (harus mengompilasi dan mengeksekusi test berulang kali untuk setiap mutasi sintaks). Coverage memberikan peta awal yang cepat untuk mengidentifikasi bagian kode mana yang belum tersentuh (blind spot), sedangkan mutation testing menguji ketajaman kualitas pengujian pada area yang telah tersentuh. Keduanya bersifat komplementer.
+</p>
+
+<h3>2. Keterbatasan Fake Repository Dibandingkan MongoDB Sungguhan</h3>
+<p>
+<strong>Perilaku MongoDB sungguhan yang TIDAK ditiru fake:</strong><br>
+Fake repository pada Langkah 2 meniru unique index dengan perulangan linier di slice memory Go yang dilindungi oleh <code>sync.Mutex</code> lokal. Perilaku MongoDB sungguhan yang <strong>tidak ditiru</strong> adalah penegakan <i>Distributed Unique Index</i> di level storage engine WiredTiger saat menerima konkurensi request tinggi. Pada MongoDB sungguhan, duplikasi index memicu error driver spesifik (kode error <code>11000 duplicate key error</code>) dengan detail key pattern tertentu, serta memiliki karakteristik latensi I/O jaringan, transaksi multi-dokumen, partial filter expressions, dan perilaku connection pooling.
+</p>
+<p>
+<strong>Jenis test yang seharusnya memeriksanya:</strong><br>
+<strong>Integration Test</strong> terhadap instans MongoDB sungguhan (atau database test container). Integration test menghubungkan repository ke instance MongoDB riil, memastikan indeks unik dibuat dengan benar (<code>CreateOne(ctx, IndexModel{...})</code>), dan menguji bahwa operasi insert konkuren yang bertabrakan benar-benar menghasilkan error driver 11000 yang berhasil diterjemahkan oleh repository menjadi <code>repository.ErrDuplicate</code>.
+</p>
+
+<h3>3. Perbandingan Mekanisme Migrasi Docker vs. In-App Migrator (Multi-Replika)</h3>
+<p>
+<strong>Perbandingan:</strong><br>
+Pada Docker Compose bawaan modul, migrasi dijalankan melalui volume binding <code>/docker-entrypoint-initdb.d</code> yang hanya dieksekusi <i>satu kali</i> saat volume PostgreSQL masih kosong. Sebaliknya, in-app migration (seperti pada <code>TestMain</code>) mengeksekusi DDL migration secara terprogram setiap kali aplikasi menyala.
+</p>
+<p>
+<strong>Kelebihan dan Risiko jika API dijalankan 3 replika sekaligus:</strong><br>
+• <strong>Kelebihan:</strong> Otomatisasi deployment sangat tinggi. Setiap container baru langsung memastikan skema database mutakhir tanpa memerlukan intervensi manual dari administrator database.<br>
+• <strong>Risiko Kritis:</strong> <i>Race Condition DDL dan Deadlock</i>. Ketika ketiga replika API menyala bersamaan, ketiganya akan berusaha mengeksekusi script DDL migrasi (<code>CREATE TABLE</code>, <code>ALTER TABLE</code>, <code>CREATE INDEX</code>) ke database PostgreSQL yang sama secara paralel. Tanpa mekanisme <strong>Distributed Lock</strong> (seperti <code>pg_advisory_lock</code>), migrasi dapat gagal di tengah jalan dengan error <i>tuple concurrently updated</i> atau skema corrupt. Solusi industri terbaik adalah menjalankan migrasi sebagai <i>init-container / migration job</i> terpisah sebelum replika API dinyalakan.
+</p>
+
+<h3>4. Risiko Keamanan Swagger UI Terbuka di Server Kampus & Port 8080</h3>
+<p>
+<strong>Dua Risiko Konkret:</strong><br>
+1. <strong>Information Disclosure & Attack Surface Reconnaissance:</strong> Swagger UI mengekspos rincian seluruh endpoint privat (seperti <code>/admin/queue</code>, <code>/users/:id/role</code>), struktur payload JSON, tipe parameter, dan format token autentikasi. Penyerang di internet tidak perlu melakukan <i>blind probing</i>; mereka mendapatkan blueprint arsitektur backend secara cuma-cuma untuk merancang eksploitasi payload yang presisi.<br>
+2. <strong>Brute Force & Unrestricted API Abuse:</strong> Port 8080 diekspos langsung ke internet tanpa melewati Web Application Firewall (WAF) atau reverse proxy. Endpoint <code>/auth/login</code> dan <code>/auth/register</code> rentan diserang <i>credential stuffing</i> atau serangan Denial of Service (DoS) yang dapat menguras resource container backend dan koneksi database pool.
+</p>
+<p>
+<strong>Perbaikan yang Tepat:</strong><br>
+1. Nonaktifkan Swagger UI pada environment production/public dengan menyetel <code>SWAGGER_ENABLED=false</code> pada file environment server. Jika dokumentasi tetap dibutuhkan oleh pengembang, pasang autentikasi lapis dua (HTTP Basic Auth) atau batasi akses Swagger hanya untuk subnet IP jaringan internal kampus (VPN Kampus).<br>
+2. Tempatkan Reverse Proxy (seperti Nginx, Caddy, atau Cloudflare WAF) di depan port aplikasi untuk menerapkan enkripsi TLS/HTTPS (port 443), rate limiting ketat pada endpoint otentikasi, dan memblokir akses publik ke path <code>/admin/*</code> serta <code>/swagger/*</code>.
+</p>
+
+<div class="page-break"></div>
+
+<h2>LAMPIRAN: BUKTI KELUARAN PENGUJIAN LENGKAP</h2>
+
+<h3>1. Pemeriksaan C.1 (Testing Suite & Uji Mutasi)</h3>
+<p><strong>T1 — Seluruh Unit Test (Semua Package):</strong></p>
+<pre><code>$ go test -count=1 ./...
+ok      latihan-fiber/app/service       0.390s
+PASS</code></pre>
+
+<p><strong>T2 — Pengujian Acak Bebas Data Leakage (Diulang 3 Kali):</strong></p>
+<pre><code>$ go test -shuffle=on -count=5 ./app/service/
+ok      latihan-fiber/app/service       0.406s
+$ go test -shuffle=on -count=5 ./app/service/
+ok      latihan-fiber/app/service       0.374s
+$ go test -shuffle=on -count=5 ./app/service/
+ok      latihan-fiber/app/service       0.351s</code></pre>
+
+<p><strong>T3 — Cakupan Kode (Coverage 100% pada Aturan Murni):</strong></p>
+<pre><code>$ go test -coverprofile coverage.out ./app/service/; go tool cover -func coverage.out
+latihan-fiber/app/service/course_rules.go:13:         WithinCreditLimit       100.0%
+latihan-fiber/app/service/course_rules.go:18:         CreditsAfterSwap        100.0%
+latihan-fiber/app/service/notification_rules.go:13:   BuildMessage            100.0%
+latihan-fiber/app/service/review_rules.go:11:         NormalizeTags           100.0%</code></pre>
+
+<p><strong>T4 — Seluruh Integration Test (6 Kasus Dasar Modul + 2 Tugas Mandiri):</strong></p>
+<pre><code>$ go test -tags=integration -count=1 -v ./tests/integration/
+=== RUN   TestIncrementEnrolled_StopsAtQuota
+--- PASS: TestIncrementEnrolled_StopsAtQuota (0.01s)
+=== RUN   TestInsertEnrollment_Duplicate
+--- PASS: TestInsertEnrollment_Duplicate (0.02s)
+=== RUN   TestWithTx_RollsBackEveryStep
+--- PASS: TestWithTx_RollsBackEveryStep (0.01s)
+=== RUN   TestClaim_OnlyOnce
+--- PASS: TestClaim_OnlyOnce (0.00s)
+=== RUN   TestEnrollEndpoint_WritesOutboxOnlyOnSuccess
+--- PASS: TestEnrollEndpoint_WritesOutboxOnlyOnSuccess (0.01s)
+=== RUN   TestEnrollEndpoint_ConcurrentCreditLimit
+--- PASS: TestEnrollEndpoint_ConcurrentCreditLimit (0.27s)
+=== RUN   TestEnrollEndpoint_SwapCourseFull
+--- PASS: TestEnrollEndpoint_SwapCourseFull (0.03s)
+=== RUN   TestEnrollEndpoint_DropSuccess
+--- PASS: TestEnrollEndpoint_DropSuccess (0.01s)
+PASS
+ok      latihan-fiber/tests/integration 0.932s</code></pre>
+
+<p><strong>Uji Mutasi T5 (course_rules.go <code>&lt;=</code> diganti <code>&lt;</code>):</strong></p>
+<pre><code>--- FAIL: TestWithinCreditLimit (0.00s)
+    --- FAIL: TestWithinCreditLimit/tepat_di_batas_24_SKS (0.00s)
+        course_rules_test.go:30: WithinCreditLimit(21, 3) = false, seharusnya true
+FAIL</code></pre>
+
+<p><strong>Uji Mutasi T6 (Hapus <code>FOR UPDATE</code> pada LockStudent — Diulang 3 Kali):</strong></p>
+<pre><code>$ go test -tags=integration -count=3 -run Concurrent ./tests/integration/
+--- FAIL: TestEnrollEndpoint_ConcurrentCreditLimit (0.22s)
+    enroll_api_test.go:132: berhasil = 10, seharusnya 8 (hasil lengkap: map[201:10])
+    enroll_api_test.go:136: baris enrollments = 10, seharusnya 8
+FAIL (Terbukti gagal pada ketiga perulangan tanpa exception)</code></pre>
+
+<p><strong>Uji Mutasi T7 (Hapus <code>ON CONFLICT</code> pada Claim Notification):</strong></p>
+<pre><code>$ go test -tags=integration -count=1 -run Claim ./tests/integration/
+--- FAIL: TestClaim_OnlyOnce (0.01s)
+    notification_repository_test.go:38: claim kedua gagal: ERROR: duplicate key value violates unique constraint "notifications_outbox_id_key" (SQLSTATE 23505)
+FAIL</code></pre>
+
+<h3>2. Pemeriksaan C.2 (API Documentation & Swagger UI)</h3>
+<pre><code>$ go tool swag init
+2026/11/07 10:20:00 Generate swagger docs....
+2026/11/07 10:20:00 Generate general API Info, endpoint: main.go
+2026/11/07 10:20:01 Successfully generated documentation at docs/
+
+$ curl -I http://localhost:8080/swagger/index.html
+HTTP/1.1 200 OK
+Content-Type: text/html
+Content-Length: 3658</code></pre>
+
+<h3>3. Pemeriksaan C.3 (Docker Deployment & Compose Verifications)</h3>
+<pre><code># Verifikasi Penolakan Secret Kosong:
+$ docker compose --env-file nul config
+error while interpolating services.api.environment.JWT_SECRET: required variable JWT_SECRET is missing a value: JWT_SECRET wajib diisi di .env
+
+# Status Layanan Docker Compose:
+$ docker compose ps
+NAME                       IMAGE                 COMMAND                  SERVICE    STATUS
+latihan-fiber-api-1        latihan-fiber:local   "./app -role=api"        api        Up (healthy)   0.0.0.0:8080->3000/tcp
+latihan-fiber-mongo-1      mongo:9.0             "docker-entrypoint.s…"   mongo      Up (healthy)   27017/tcp
+latihan-fiber-postgres-1   postgres:16-alpine    "docker-entrypoint.s…"   postgres   Up (healthy)   5432/tcp
+latihan-fiber-redis-1      redis:7.4-alpine      "docker-entrypoint.s…"   redis      Up (healthy)   6379/tcp
+latihan-fiber-worker-1     latihan-fiber:local   "./app -role=worker"     worker     Up             3000/tcp
+
+# Health Endpoint API:
+$ curl http://localhost:8080/api/v1/health
+{"success":true,"message":"server, PostgreSQL, dan MongoDB berjalan"}
+
+# Verifikasi Hak Akses User Non-Root:
+$ docker compose exec api whoami
+app
+
+# Verifikasi Konten Direktori Runtime (Bebas .env dan Source Code):
+$ docker compose exec api ls -a /app
+.
+..
+app
+logs
+
+# Verifikasi Alur Notifikasi Asinkron:
+$ curl -s http://localhost:8080/api/v1/notifications/mine -H "Authorization: Bearer &lt;token&gt;"
+{"success":true,"message":"notifikasi berhasil diambil","data":[{"id":1,"channel":"email","subject":"KRS: berhasil terdaftar di IF101 Pemrograman Backend Lanjut","body":"Halo mhs_rozan, Anda tercatat sebagai peserta kelas IF101 Pemrograman Backend Lanjut."}]}
+
+# Verifikasi Persistensi Volume Data Setelah compose down dan up -d:
+$ docker compose down &amp;&amp; docker compose up -d
+$ curl -s http://localhost:8080/api/v1/courses/mine -H "Authorization: Bearer &lt;token&gt;"
+{"success":true,"message":"KRS berhasil diambil","data":{"courses":[{"id":1,"code":"IF101","name":"Pemrograman Backend Lanjut","credits":3,"quota":40,"enrolled_count":1}],"total_credits":3,"max_credits":24}}</code></pre>
+
+</body>
+</html>
